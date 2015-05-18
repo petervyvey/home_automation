@@ -2,6 +2,24 @@
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
 
+export interface INodeOptions {
+    id: string;
+    tenantID?: string
+    code?: string;
+    description?: string;
+    validFrom?: string;
+    validUntil?: string;
+}
+
+export interface INodeAttributes extends INodeOptions {
+    id: string;
+    tenantID: string
+    code: string;
+    description: string;
+    validFrom: string;
+    validUntil: string;
+}
+
 export class Node {
 
     constructor() {}
@@ -12,6 +30,21 @@ export class Node {
     public description: string;
     public validFrom: string;
     public validUntil: string;
+}
+
+export class NodeFactory {
+
+    public static create(data: INodeOptions): Node {
+        var node = new Node();
+        node.id = data.id;
+        node.tenantID = data.tenantID;
+        node.code = data.code;
+        node.description = data.description;
+        node.validFrom = data.validFrom;
+        node.validUntil = data.validUntil;
+
+        return node;
+    }
 }
 
 export class NodeRepository {
@@ -35,16 +68,9 @@ export class NodeRepository {
             (err, cursor):void => {
 
                 var node: Node = null;
-                if (cursor) {
+                if (cursor && cursor._result) {
                     var data:any = (<any[]>cursor._result)[0];
-
-                    node = new Node();
-                    node.id = data.id;
-                    node.tenantID = data.tenantID;
-                    node.code = data.code;
-                    node.description = data.description;
-                    node.validFrom = data.validFrom;
-                    node.validUntil = data.validUntil;
+                    node = NodeFactory.create(data);
                 }
 
                 deferred.resolve(node);
@@ -67,17 +93,10 @@ export class NodeRepository {
 
                 var nodes: Array<Node> = [];
 
-                if (cursor) {
+                if (cursor && cursor._result) {
                     for (var i:number = 0; i < cursor._result.length; i++) {
                         var data:any = (<any[]>cursor._result)[i];
-
-                        var node = new Node();
-                        node.id = data.id;
-                        node.tenantID = data.tenantID;
-                        node.code = data.code;
-                        node.description = data.description;
-                        node.validFrom = data.validFrom;
-                        node.validUntil = data.validUntil;
+                        var node = NodeFactory.create(data);
 
                         nodes.push(node);
                     }

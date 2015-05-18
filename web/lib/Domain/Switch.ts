@@ -2,7 +2,29 @@
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
 
-export class Switch {
+export interface ISwitchOptions {
+    id: string;
+    nodeID?: string
+    code?: string;
+    description?: string;
+    state?: string;
+    mode?: string;
+    validFrom?: string;
+    validUntil?: string;
+}
+
+export interface ISwitchAttributes extends ISwitchOptions {
+    id: string;
+    nodeID: string
+    code: string;
+    description: string;
+    state: string;
+    mode: string;
+    validFrom: string;
+    validUntil: string;
+}
+
+export class Switch implements ISwitchAttributes {
 
     constructor() {}
 
@@ -14,6 +36,23 @@ export class Switch {
     public mode: string;
     public validFrom: string;
     public validUntil: string;
+}
+
+export class SwitchFactory {
+
+    public static create(data: ISwitchOptions): Switch {
+        var _switch = new Switch();
+        _switch.id = data.id;
+        _switch.nodeID = data.nodeID;
+        _switch.code = data.code;
+        _switch.description = data.description;
+        _switch.state = data.state;
+        _switch.mode = data.mode;
+        _switch.validFrom = data.validFrom;
+        _switch.validUntil = data.validUntil;
+
+        return _switch;
+    }
 }
 
 export class SwitchRepository {
@@ -39,18 +78,9 @@ export class SwitchRepository {
             (err, cursor): void => {
 
                 var _switch: Switch = null;
-                if (cursor) {
+                if (cursor && cursor._result) {
                     var data:any = (<any[]>cursor._result)[0];
-
-                    _switch = new Switch();
-                    _switch.id = data.id;
-                    _switch.nodeID = data.nodeID;
-                    _switch.code = data.code;
-                    _switch.description = data.description;
-                    _switch.state = data.state;
-                    _switch.mode = data.mode;
-                    _switch.validFrom = data.validFrom;
-                    _switch.validUntil = data.validUntil;
+                    _switch = SwitchFactory.create(data);
                 }
 
                 deferred.resolve(_switch);
@@ -75,19 +105,10 @@ export class SwitchRepository {
 
                 var switches: Array<Switch> = [];
 
-                if (cursor) {
+                if (cursor && cursor._result) {
                     for (var i:number = 0; i < cursor._result.length; i++) {
                         var data:any = (<any[]>cursor._result)[i];
-
-                        var _switch = new Switch();
-                        _switch.id = data.id;
-                        _switch.nodeID = data.nodeID;
-                        _switch.code = data.code;
-                        _switch.description = data.description;
-                        _switch.state = data.state;
-                        _switch.mode = data.mode;
-                        _switch.validFrom = data.validFrom;
-                        _switch.validUntil = data.validUntil;
+                        var _switch = SwitchFactory.create(data);
 
                         switches.push(_switch);
                     }

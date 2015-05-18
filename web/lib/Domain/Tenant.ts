@@ -2,6 +2,18 @@
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
 
+export interface ITenantOptions {
+    id?: string;
+    code?: string;
+    description?: string;
+}
+
+export interface ITenantAttributes extends ITenantOptions {
+    id: string;
+    code: string;
+    description: string;
+}
+
 export class Tenant {
 
     constructor() {}
@@ -9,6 +21,18 @@ export class Tenant {
     public id: string;
     public code: string;
     public description: string;
+}
+
+export class TenantFactory {
+
+    public static create(data: ITenantOptions): Tenant {
+        var tenant = new Tenant();
+        tenant.id = data.id;
+        tenant.code = data.code;
+        tenant.description = data.description;
+
+        return tenant;
+    }
 }
 
 export class TenantRepository {
@@ -28,13 +52,9 @@ export class TenantRepository {
             (err, cursor): void => {
 
                 var tenant: Tenant = null;
-                if (cursor) {
+                if (cursor && cursor._result) {
                     var data:any = (<any[]>cursor._result)[0];
-
-                    tenant = new Tenant();
-                    tenant.id = data.id;
-                    tenant.code = data.code;
-                    tenant.description = data.description;
+                    tenant = TenantFactory.create(data);
                 }
 
                 deferred.resolve(tenant);
@@ -53,13 +73,9 @@ export class TenantRepository {
             (err, cursor): void => {
 
                 var tenant: Tenant = null;
-                if (cursor) {
+                if (cursor && cursor._result) {
                     var data:any = (<any[]>cursor._result)[0];
-
-                    tenant = new Tenant();
-                    tenant.id = data.id;
-                    tenant.code = data.code;
-                    tenant.description = data.description;
+                    tenant = TenantFactory.create(data);
                 }
 
                 deferred.resolve(tenant);
