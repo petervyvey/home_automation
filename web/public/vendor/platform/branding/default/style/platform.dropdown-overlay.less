@@ -1,0 +1,22 @@
+﻿.dropdown {
+
+    .dropdown-overlay {
+        display: block;
+        background-color: rgba(255, 255, 255, 0.1);
+        position: fixed;
+        top: -500px;
+        right: 0;
+        width: 100%;
+        margin-top: 60px;
+        min-height: 200px;
+
+        transition: background-color 0.300s;
+    }
+
+    &.open {
+        .dropdown-overlay {
+            top: 0;
+            background-color: @dropdown-bg;
+        }
+    }
+}
