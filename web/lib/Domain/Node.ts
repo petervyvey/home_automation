@@ -1,6 +1,7 @@
 
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import HalApi = require('../../lib/Utils/Hal');
 
 export interface INodeOptions {
     id: string;
@@ -20,9 +21,11 @@ export interface INodeAttributes extends INodeOptions {
     validUntil: string;
 }
 
-export class Node {
+export class Node extends HalApi.Representation implements INodeAttributes {
 
-    constructor() {}
+    constructor() {
+        super();
+    }
 
     public id: string;
     public tenantID: string

@@ -1,6 +1,10 @@
 
-interface ILinkCollection {
+interface ILinkDictionary {
     [name: string]: Link;
+}
+
+interface IEmbeddedResourceDictionary {
+    [name: string]: Array<Representation>;
 }
 
 export class Link {
@@ -15,17 +19,38 @@ export class Link {
 }
 
 export interface IRepresentation {
-    _links: ILinkCollection;
+    _links: ILinkDictionary;
+    _embedded: IEmbeddedResourceDictionary;
 }
 
 export class Representation implements IRepresentation {
 
-    public _links: ILinkCollection = null;
+    public _links: ILinkDictionary = null;
+    public _embedded: IEmbeddedResourceDictionary = null;
 
-    public addLink(name: string, link: Link) {
+    public addLink(name: string, link: Link) : Link {
 
         if (this._links==null) this._links = {};
-
         this._links[name] = link;
+
+        return this._links[name];
+    }
+
+    public createEmbeddedResource(name: string, resources: Array<Representation> = null): Array<Representation> {
+
+        if (this._embedded==null) this._embedded = {};
+        this._embedded[name] = resources != null ? resources : [];
+
+        return this._embedded[name];
+    }
+
+    public addEmbeddedResource(name: string, resource: Representation): Representation
+    {
+        if (this._embedded==null) this._embedded = {};
+        if (this._embedded[name]==null) this.createEmbeddedResource(name);
+
+        this._embedded[name].push(resource);
+
+        return resource;
     }
 }

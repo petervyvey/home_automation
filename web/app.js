@@ -17,6 +17,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.set('json spaces', 4);
+app.set('json replacer', function(key, value){ return value == null ? undefined : value; });
 
 // uncomment after placing your favicon in /public
 app.use(favicon(__dirname + '/public/favicon.ico'));

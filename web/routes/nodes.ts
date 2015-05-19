@@ -3,8 +3,10 @@
 import express = require('express');
 import Q = require('q');
 import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
+import HalApi = require('../lib/Utils/Hal');
 import TenantModule = require('../lib/Domain/Tenant');
 import NodeModule = require('../lib/Domain/Node');
+import SwitchApi = require('../lib/Domain/Switch');
 
 var router = express.Router();
 
@@ -27,6 +29,9 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/:nodeID', (req, res, next) => {
+    var _tenant: TenantModule.Tenant;
+    var _node: NodeModule.Node;
+
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
         .then((tenant: TenantModule.Tenant): Q.Promise<NodeModule.Node> => {
@@ -34,10 +39,20 @@ router.get('/:nodeID', (req, res, next) => {
                 throw 'UNKNOWN TENANT'
             }
 
+            _tenant = tenant;
+
             return service.getNodeByID(tenant.id, req.params.nodeID)
         })
-        .then((node: NodeModule.Node): void => {
-            res.json(node);
+        .then((node: NodeModule.Node): Q.Promise<Array<SwitchApi.Switch>> => {
+            _node = node;
+
+            return service.getSwitchByNodeID(_tenant.id, node.id)
+        })
+        .then((switches: Array<SwitchApi.Switch>): void => {
+            _node.addLink('self', new HalApi.Link(req.originalUrl));
+            _node.createEmbeddedResource('switches', switches);
+
+            res.json(_node);
         })
         .catch((error: any) => {
             res.sendStatus(401);

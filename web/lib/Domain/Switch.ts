@@ -1,6 +1,7 @@
 
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import HalApi = require('../../lib/Utils/Hal');
 
 export interface ISwitchOptions {
     id: string;
@@ -24,9 +25,11 @@ export interface ISwitchAttributes extends ISwitchOptions {
     validUntil: string;
 }
 
-export class Switch implements ISwitchAttributes {
+export class Switch extends HalApi.Representation implements ISwitchAttributes {
 
-    constructor() {}
+    constructor() {
+        super();
+    }
 
     public id: string;
     public nodeID: string
@@ -84,6 +87,37 @@ export class SwitchRepository {
                 }
 
                 deferred.resolve(_switch);
+            }
+        );
+
+        return deferred.promise;
+    }
+
+    public getByNodeID(tenantID: string, nodeID: string): Q.Promise<Array<Switch>> {
+        var deferred: Q.Deferred<Array<Switch>> = Q.defer<Array<Switch>>();
+
+        this.session.query(
+            'FOR switch IN switches ' +
+            '    FOR node IN nodes '+
+            '    FILTER node.id == switch.nodeID AND node.id == @nodeID ' +
+            '        FOR tenant IN tenants ' +
+            '        FILTER tenant.ID == node.tenantid AND tenant.id == @tenantID ' +
+            'RETURN switch',
+            {tenantID: tenantID, nodeID: nodeID},
+            (err, cursor): void => {
+
+                var switches: Array<Switch> = [];
+
+                if (cursor && cursor._result) {
+                    for (var i:number = 0; i < cursor._result.length; i++) {
+                        var data:any = (<any[]>cursor._result)[i];
+                        var _switch = SwitchFactory.create(data);
+
+                        switches.push(_switch);
+                    }
+                }
+
+                deferred.resolve(switches);
             }
         );
 

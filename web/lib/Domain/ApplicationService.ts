@@ -80,6 +80,17 @@ export class ApplicationService {
         return deferred.promise;
     }
 
+    public getSwitchByNodeID(tenantID: string, nodeID: string): Q.Promise<Array<SwitchModule.Switch>> {
+        var deferred: Q.Deferred<Array<SwitchModule.Switch>> = Q.defer<Array<SwitchModule.Switch>>()
+
+        this.switchtRepository.getByNodeID(tenantID, nodeID)
+            .then((switches: Array<SwitchModule.Switch>)=>{
+                deferred.resolve(switches);
+            });
+
+        return deferred.promise;
+    }
+
     public getSwitches(tenantID: string): Q.Promise<Array<SwitchModule.Switch>> {
         var deferred: Q.Deferred<Array<SwitchModule.Switch>> = Q.defer<Array<SwitchModule.Switch>>()
 
