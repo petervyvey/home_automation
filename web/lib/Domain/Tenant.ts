@@ -1,6 +1,7 @@
 
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import HalApi = require('../../lib/Utils/Hal');
 
 export interface ITenantOptions {
     id?: string;
@@ -14,9 +15,11 @@ export interface ITenantAttributes extends ITenantOptions {
     description: string;
 }
 
-export class Tenant {
+export class Tenant extends HalApi.Representation {
 
-    constructor() {}
+    constructor() {
+        super();
+    }
 
     public id: string;
     public code: string;

@@ -5,6 +5,7 @@ import sendhal = require('sendhal');
 import Q = require('q');
 import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
 import TenantModule = require('../lib/Domain/Tenant');
+import HalApi = require('../lib/Utils/Hal');
 
 var router = express.Router();
 
@@ -12,12 +13,9 @@ router.get('/:tenantID', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
         .then((tenant: TenantModule.Tenant): void => {
-            //res.json(tenant);
-            var r: any = sendhal.Resource(tenant, req.originalUrl);
+            //tenant.addLink('self', new HalApi.Link(req.originalUrl));
 
-            console.log(JSON.stringify(r));
-
-            res.json(r);
+            res.json(tenant);
         })
         .catch((error: any) => {
             res.sendStatus(401);
