@@ -50,6 +50,17 @@ router.get('/:nodeID', (req, res, next) => {
         })
         .then((switches: Array<SwitchApi.Switch>): void => {
             _node.addLink('self', new HalApi.Link(req.originalUrl));
+
+            for(var i: number = 0; i < switches.length; i++) {
+                var tenantCode: string = (<any>req).tenantCode;
+
+                switches[i].addLink('self', new HalApi.Link('/' + tenantCode + '/switches/' + switches[i].id));
+                switches[i].addLink('$mode.alwaysOff', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/off', HalApi.HttpVerb.POST));
+                switches[i].addLink('$mode.alwaysOn', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/on', HalApi.HttpVerb.POST));
+                switches[i].addLink('$mode.scheduled', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/scheduled', HalApi.HttpVerb.POST));
+
+            }
+
             _node.createEmbeddedResource('switches', switches);
 
             res.json(_node);

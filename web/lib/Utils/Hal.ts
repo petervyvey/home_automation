@@ -1,4 +1,11 @@
 
+export enum HttpVerb {
+    'GET' = <any>'GET',
+    'PUT' = <any>'PUT',
+    'POST' = <any>'POST',
+    'DELETE' = <any>'DELETE'
+}
+
 interface ILinkDictionary {
     [name: string]: Link;
 }
@@ -16,6 +23,14 @@ export class Link {
 
     public href: string = null;
     public templated: boolean = null;
+    public method: HttpVerb = null;
+
+    public static CreateWithMethod(href: string, method: HttpVerb = null): Link {
+        var link: Link = new Link(href);
+        link.method = method;
+
+        return link;
+    }
 }
 
 export interface IRepresentation {
