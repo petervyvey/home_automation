@@ -1,6 +1,8 @@
 
 import Q = require('q');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import DomainApi = require('./Domain');
+import SwitchApi = require('./Switch');
 import HalApi = require('../../lib/Utils/Hal');
 
 export interface INodeOptions {
@@ -20,8 +22,24 @@ export interface INodeAttributes extends INodeOptions {
     validFrom: string;
     validUntil: string;
 }
+export class Node extends DomainApi.DomainObject implements INodeAttributes {
 
-export class Node extends HalApi.Representation implements INodeAttributes {
+    constructor() {
+        super();
+    }
+
+    public id: string;
+    public tenantID: string
+    public code: string;
+    public description: string;
+    public validFrom: string;
+    public validUntil: string;
+
+    public switches: Array<SwitchApi.Switch> = [];
+}
+
+
+export class NodeRepresentation extends HalApi.Representation implements INodeAttributes {
 
     constructor() {
         super();

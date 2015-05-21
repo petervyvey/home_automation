@@ -3,99 +3,114 @@
 import Q = require('q');
 import when = require('when');
 import amqp = require('amqplib');
-import TenantModule = require('./Tenant');
-import NodeModule = require('./Node');
-import SwitchModule = require('./Switch');
-import GeneratorModule = require('../Utils/Generator');
-import FactoryModule = require('../Foundation/Factory');
-import ArangoDBModule = require('../Data/ArangoDB');
+import ArangoDBApi = require('../Data/ArangoDB');
+import GeneratorApi = require('../Utils/Generator');
+import DomainApi = require('./Domain');
+import TenantApi = require('./Tenant');
+import NodeApi = require('./Node');
+import SwitchApi = require('./Switch');
 
-export class ApplicationService {
+export class ApplicationService extends DomainApi.DomainService {
 
     constructor() {
-        this.session = new ArangoDBModule.ArangoSession('http://automation:automation@localhost:8529', 'automation');
+        super();
 
-        this.tenantRepository = new TenantModule.TenantRepository(this.session);
-        this.nodeRepository = new NodeModule.NodeRepository(this.session);
-        this.switchtRepository = new SwitchModule.SwitchRepository(this.session);
+        this.session = new ArangoDBApi.ArangoSession('http://automation:automation@localhost:8529', 'automation');
+
+        this.tenantRepository = new TenantApi.TenantRepository(this.session);
+        this.nodeRepository = new NodeApi.NodeRepository(this.session);
+        this.switchRepository = new SwitchApi.SwitchRepository(this.session);
     }
 
-    private session: ArangoDBModule.ArangoSession;
-    private tenantRepository: TenantModule.TenantRepository;
-    private nodeRepository: NodeModule.NodeRepository;
-    private switchtRepository: SwitchModule.SwitchRepository;
+    private tenantRepository: TenantApi.TenantRepository;
+    private nodeRepository: NodeApi.NodeRepository;
+    private switchRepository: SwitchApi.SwitchRepository;
 
-    public getTenantByID(id: string): Q.Promise<TenantModule.Tenant> {
-        var deferred: Q.Deferred<TenantModule.Tenant> = Q.defer<TenantModule.Tenant>()
+    public getTenantByID(id: string): Q.Promise<TenantApi.Tenant> {
+        var deferred: Q.Deferred<TenantApi.Tenant> = Q.defer<TenantApi.Tenant>()
 
         this.tenantRepository.getByID(id)
-            .then((tenant: TenantModule.Tenant)=>{
+            .then((tenant: TenantApi.Tenant)=>{
                 deferred.resolve(tenant);
             });
 
         return deferred.promise;
     }
 
-    public getTenantByCode(code: string): Q.Promise<TenantModule.Tenant> {
-        var deferred: Q.Deferred<TenantModule.Tenant> = Q.defer<TenantModule.Tenant>()
+    public getTenantByCode(code: string): Q.Promise<TenantApi.Tenant> {
+        var deferred: Q.Deferred<TenantApi.Tenant> = Q.defer<TenantApi.Tenant>()
 
         this.tenantRepository.getByCode(code)
-            .then((tenant: TenantModule.Tenant)=>{
+            .then((tenant: TenantApi.Tenant)=>{
                 deferred.resolve(tenant);
             });
 
         return deferred.promise;
     }
 
-    public getNodeByID(tenantID: string, nodeID: string): Q.Promise<NodeModule.Node> {
-        var deferred: Q.Deferred<NodeModule.Node> = Q.defer<NodeModule.Node>()
+    public getNodeByID(tenantID: string, nodeID: string): Q.Promise<NodeApi.Node> {
+        var deferred: Q.Deferred<NodeApi.Node> = Q.defer<NodeApi.Node>()
 
         this.nodeRepository.getByID(tenantID, nodeID)
-            .then((node: NodeModule.Node)=>{
+            .then((node: NodeApi.Node)=>{
                 deferred.resolve(node);
             });
 
         return deferred.promise;
     }
 
-    public getNodes(tenantID: string): Q.Promise<Array<NodeModule.Node>> {
-        var deferred: Q.Deferred<Array<NodeModule.Node>> = Q.defer<Array<NodeModule.Node>>()
+    public getNodes(tenantID: string): Q.Promise<Array<NodeApi.Node>> {
+        var deferred: Q.Deferred<Array<NodeApi.Node>> = Q.defer<Array<NodeApi.Node>>()
 
         this.nodeRepository.getList (tenantID)
-            .then((nodes: Array<NodeModule.Node>)=>{
+            .then((nodes: Array<NodeApi.Node>)=>{
+                nodes.forEach((node: NodeApi.Node, index: number) => {console.log('node', node)}) ;
+
                 deferred.resolve(nodes);
             });
 
         return deferred.promise;
     }
 
-    public getSwitchByID(tenantID: string, switchID: string): Q.Promise<SwitchModule.Switch> {
-        var deferred: Q.Deferred<SwitchModule.Switch> = Q.defer<SwitchModule.Switch>()
+    public getSwitchByID(tenantID: string, switchID: string): Q.Promise<SwitchApi.Switch> {
+        var deferred: Q.Deferred<SwitchApi.Switch> = Q.defer<SwitchApi.Switch>()
 
-        this.switchtRepository.getByID(tenantID, switchID)
-            .then((_switch: SwitchModule.Switch)=>{
+        this.switchRepository.getByID(tenantID, switchID)
+            .then((_switch: SwitchApi.Switch)=>{
                 deferred.resolve(_switch);
             });
 
         return deferred.promise;
     }
 
-    public getSwitchByNodeID(tenantID: string, nodeID: string): Q.Promise<Array<SwitchModule.Switch>> {
-        var deferred: Q.Deferred<Array<SwitchModule.Switch>> = Q.defer<Array<SwitchModule.Switch>>()
+    public getSwitchByNodeID(tenantID: string, nodeID: string): Q.Promise<Array<SwitchApi.Switch>> {
+        var deferred: Q.Deferred<Array<SwitchApi.Switch>> = Q.defer<Array<SwitchApi.Switch>>()
 
-        this.switchtRepository.getByNodeID(tenantID, nodeID)
-            .then((switches: Array<SwitchModule.Switch>)=>{
+        this.switchRepository.getByNodeID(tenantID, nodeID)
+            .then((switches: Array<SwitchApi.Switch>)=>{
                 deferred.resolve(switches);
             });
 
         return deferred.promise;
     }
 
-    public getSwitches(tenantID: string): Q.Promise<Array<SwitchModule.Switch>> {
-        var deferred: Q.Deferred<Array<SwitchModule.Switch>> = Q.defer<Array<SwitchModule.Switch>>()
+    public getSwitchesForNode(node: NodeApi.Node): Q.Promise<NodeApi.Node> {
+        var deferred: Q.Deferred<NodeApi.Node> = Q.defer<NodeApi.Node>()
 
-        this.switchtRepository.getList (tenantID)
-            .then((switches: Array<SwitchModule.Switch>)=>{
+        this.switchRepository.getByNodeID(node.tenantID, node.id)
+            .then((switches: Array<SwitchApi.Switch>)=>{
+                node.switches = switches;
+                deferred.resolve(node);
+            });
+
+        return deferred.promise;
+    }
+
+    public getSwitches(tenantID: string): Q.Promise<Array<SwitchApi.Switch>> {
+        var deferred: Q.Deferred<Array<SwitchApi.Switch>> = Q.defer<Array<SwitchApi.Switch>>()
+
+        this.switchRepository.getList (tenantID)
+            .then((switches: Array<SwitchApi.Switch>)=>{
                 deferred.resolve(switches);
             });
 
@@ -106,7 +121,7 @@ export class ApplicationService {
         var deferred: Q.Deferred<boolean> = Q.defer<boolean>();
 
         var key: string = 'automation.event';
-        var event: string = JSON.stringify({ id: GeneratorModule.Generator.NewGuid(), type:'SwitchModeEvent', tenant: tenantID, switches:[ { id: switchID, mode:  mode}]});
+        var event: string = JSON.stringify({ id: GeneratorApi.Generator.NewGuid(), type:'SwitchModeEvent', tenant: tenantID, switches:[ { id: switchID, mode:  mode}]});
 
         amqp.connect('amqp://automation:automation@localhost/automation')
             .then(function(connection) {

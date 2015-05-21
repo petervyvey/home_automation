@@ -43,20 +43,20 @@ export class Representation implements IRepresentation {
     public _links: ILinkDictionary = null;
     public _embedded: IEmbeddedResourceDictionary = null;
 
-    public addLink(name: string, link: Link) : Link {
+    public addLink(name: string, link: Link) : Representation {
 
         if (this._links==null) this._links = {};
         this._links[name] = link;
 
-        return this._links[name];
+        return this;
     }
 
-    public createEmbeddedResource(name: string, resources: Array<Representation> = null): Array<Representation> {
+    public createEmbeddedResource(name: string, resources: Array<Representation> = null): Representation {
 
         if (this._embedded==null) this._embedded = {};
         this._embedded[name] = resources != null ? resources : [];
 
-        return this._embedded[name];
+        return this;
     }
 
     public addEmbeddedResource(name: string, resource: Representation): Representation
@@ -66,6 +66,6 @@ export class Representation implements IRepresentation {
 
         this._embedded[name].push(resource);
 
-        return resource;
+        return this;
     }
 }

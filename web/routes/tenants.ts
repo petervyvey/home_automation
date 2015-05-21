@@ -3,23 +3,23 @@
 import express = require('express');
 import sendhal = require('sendhal');
 import Q = require('q');
-import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
-import TenantModule = require('../lib/Domain/Tenant');
+import ApplicationServiceApi = require('../lib/Domain/ApplicationService');
+import TenantApi = require('../lib/Domain/Tenant');
 import NodeApi = require('../lib/Domain/Node');
 import HalApi = require('../lib/Utils/Hal');
 
 var router = express.Router();
 
 router.get('/:tenantID', (req, res, next) => {
-    var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
+    var service : ApplicationServiceApi.ApplicationService = new ApplicationServiceApi.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): void => {
-            tenant.addLink('self', new HalApi.Link(req.originalUrl));
-            var nodes: Array<HalApi.Representation> = tenant.createEmbeddedResource('nodes');
+        .then((tenant: TenantApi.Tenant): void => {
 
-            tenant.addEmbeddedResource('nodes', new NodeApi.Node());
+            var _tenant: HalApi.Representation =
+                TenantApi.TenantRepresentation.FromDomainObject(tenant)
+                    .addLink('self', new HalApi.Link(req.originalUrl));
 
-            res.json(tenant);
+            res.json(_tenant);
         })
         .catch((error: any) => {
             res.sendStatus(401);

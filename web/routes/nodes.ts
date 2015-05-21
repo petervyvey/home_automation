@@ -4,8 +4,8 @@ import express = require('express');
 import Q = require('q');
 import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
 import HalApi = require('../lib/Utils/Hal');
-import TenantModule = require('../lib/Domain/Tenant');
-import NodeModule = require('../lib/Domain/Node');
+import TenantApi = require('../lib/Domain/Tenant');
+import NodeApi = require('../lib/Domain/Node');
 import SwitchApi = require('../lib/Domain/Switch');
 
 var router = express.Router();
@@ -13,14 +13,14 @@ var router = express.Router();
 router.get('/', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): Q.Promise<Array<NodeModule.Node>> => {
+        .then((tenant: TenantApi.Tenant): Q.Promise<Array<NodeApi.Node>> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
 
             return service.getNodes(tenant.id);
         })
-        .then((nodes: Array<NodeModule.Node>): void => {
+        .then((nodes: Array<NodeApi.Node>): void => {
             res.json(nodes);
         })
         .catch((error: any) => {
@@ -29,12 +29,12 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/:nodeID', (req, res, next) => {
-    var _tenant: TenantModule.Tenant;
-    var _node: NodeModule.Node;
+    var _tenant: TenantApi.Tenant;
+    var _node: NodeApi.Node;
 
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): Q.Promise<NodeModule.Node> => {
+        .then((tenant: TenantApi.Tenant): Q.Promise<NodeApi.Node> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
@@ -43,7 +43,7 @@ router.get('/:nodeID', (req, res, next) => {
 
             return service.getNodeByID(tenant.id, req.params.nodeID)
         })
-        .then((node: NodeModule.Node): Q.Promise<Array<SwitchApi.Switch>> => {
+        .then((node: NodeApi.Node): Q.Promise<Array<SwitchApi.Switch>> => {
             _node = node;
 
             return service.getSwitchByNodeID(_tenant.id, node.id)

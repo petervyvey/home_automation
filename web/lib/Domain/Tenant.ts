@@ -1,6 +1,7 @@
 
 import Q = require('q');
-import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import ArangoDBApi = require('../../lib/Data/ArangoDB');
+import DomainApi = require('./Domain');
 import HalApi = require('../../lib/Utils/Hal');
 
 export interface ITenantOptions {
@@ -15,7 +16,7 @@ export interface ITenantAttributes extends ITenantOptions {
     description: string;
 }
 
-export class Tenant extends HalApi.Representation {
+export class Tenant extends DomainApi.DomainObject {
 
     constructor() {
         super();
@@ -38,13 +39,34 @@ export class TenantFactory {
     }
 }
 
+export class TenantRepresentation extends HalApi.Representation {
+
+    constructor() {
+        super();
+    }
+
+    public id: string;
+    public code: string;
+    public description: string;
+
+    public static FromDomainObject(domainObject: Tenant): TenantRepresentation {
+        var representation: TenantRepresentation = new TenantRepresentation();
+
+        representation.id = domainObject.id;
+        representation.code = domainObject.code;
+        representation.description = domainObject.description;
+
+        return representation;
+    }
+}
+
 export class TenantRepository {
 
-    constructor(session: ArangoDBModule.ISession){
+    constructor(session: ArangoDBApi.ISession){
         this.session = session;
     }
 
-    private session: ArangoDBModule.ISession;
+    private session: ArangoDBApi.ISession;
 
     public getByID(id: string): Q.Promise<Tenant> {
         var deferred: Q.Deferred<Tenant> = Q.defer<Tenant>();

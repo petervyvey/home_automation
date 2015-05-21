@@ -1,6 +1,6 @@
 
 import Q = require('q');
-import ArangoDBModule = require('../../lib/Data/ArangoDB');
+import ArangoDBApi = require('../../lib/Data/ArangoDB');
 import HalApi = require('../../lib/Utils/Hal');
 
 export interface ISwitchOptions {
@@ -60,11 +60,11 @@ export class SwitchFactory {
 
 export class SwitchRepository {
 
-    constructor(session: ArangoDBModule.ISession){
+    constructor(session: ArangoDBApi.ISession){
         this.session = session;
     }
 
-    private session: ArangoDBModule.ISession;
+    private session: ArangoDBApi.ISession;
 
     public getByID(tenantID: string, switchID: string): Q.Promise<Switch> {
         var deferred: Q.Deferred<Switch> = Q.defer<Switch>();

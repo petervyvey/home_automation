@@ -3,22 +3,22 @@
 import express = require('express');
 import Q = require('q');
 import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
-import TenantModule = require('../lib/Domain/Tenant');
-import SwitchModule = require('../lib/Domain/Switch');
+import TenantApi = require('../lib/Domain/Tenant');
+import SwitchApi = require('../lib/Domain/Switch');
 
 var router = express.Router();
 
 router.get('/', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): Q.Promise<Array<SwitchModule.Switch>> => {
+        .then((tenant: TenantApi.Tenant): Q.Promise<Array<SwitchApi.Switch>> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
 
             return service.getSwitches(tenant.id);
         })
-        .then((switches: Array<SwitchModule.Switch>): void => {
+        .then((switches: Array<SwitchApi.Switch>): void => {
             res.json(switches);
         })
         .catch((error: any) => {
@@ -29,14 +29,14 @@ router.get('/', (req, res, next) => {
 router.get('/:switchID', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): Q.Promise<SwitchModule.Switch> => {
+        .then((tenant: TenantApi.Tenant): Q.Promise<SwitchApi.Switch> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
 
             return service.getSwitchByID(tenant.id, req.params.switchID)
         })
-        .then((_switch: SwitchModule.Switch): void => {
+        .then((_switch: SwitchApi.Switch): void => {
             res.json(_switch);
         })
         .catch((error: any) => {
@@ -47,7 +47,7 @@ router.get('/:switchID', (req, res, next) => {
 router.post('/:switchID/mode/:mode', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
-        .then((tenant: TenantModule.Tenant): Q.Promise<boolean> => {
+        .then((tenant: TenantApi.Tenant): Q.Promise<boolean> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
