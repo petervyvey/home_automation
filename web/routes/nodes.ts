@@ -10,9 +10,9 @@ import SwitchApi = require('../lib/Domain/Switch');
 
 var router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', (request, response, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
-    service.getTenantByCode((<any>req).tenantCode)
+    service.getTenantByCode((<any>request).tenantCode)
         .then((tenant: TenantApi.Tenant): Q.Promise<Array<NodeApi.Node>> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
@@ -21,52 +21,53 @@ router.get('/', (req, res, next) => {
             return service.getNodes(tenant.id);
         })
         .then((nodes: Array<NodeApi.Node>): void => {
-            res.json(nodes);
+
+            var nodeRepresentations: Array<NodeApi.NodeRepresentation> =
+                nodes.map((node: NodeApi.Node): NodeApi.NodeRepresentation =>{
+                    return NodeApi.NodeRepresentation.CreateRepresentation(request, (<any>request).tenantCode, node)
+                });
+
+            var representation: HalApi.CollectionRepresentation = new HalApi.CollectionRepresentation();
+            representation
+                .setCount(nodeRepresentations.length)
+                .setTotal(nodeRepresentations.length)
+                .addSelfLink(request)
+                .addEmbeddedResource('nodes', nodeRepresentations);
+
+            response.set('Content-Type', 'application/hal+json');
+            response.json(representation);
         })
         .catch((error: any) => {
-            res.sendStatus(401);
+            response.sendStatus(401);
         });
 });
 
-router.get('/:nodeID', (req, res, next) => {
+router.get('/:nodeID', (request: express.Request, response: express.Response, next) => {
     var _tenant: TenantApi.Tenant;
-    var _node: NodeApi.Node;
+    var _node: HalApi.ResourceRepresentation;
 
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
-    service.getTenantByCode((<any>req).tenantCode)
+    service.getTenantByCode((<any>request).tenantCode)
+
+        // Check for valid tenant.
+        // TODO: use oauth2 token to match requested tenant and token.tenant.
         .then((tenant: TenantApi.Tenant): Q.Promise<NodeApi.Node> => {
-            if (!tenant) {
-                throw 'UNKNOWN TENANT'
-            }
+            if (!tenant) throw 'UNKNOWN TENANT'
 
             _tenant = tenant;
 
-            return service.getNodeByID(tenant.id, req.params.nodeID)
+            return service.getNodeByID(tenant.id, request.params.nodeID)
         })
-        .then((node: NodeApi.Node): Q.Promise<Array<SwitchApi.Switch>> => {
-            _node = node;
 
-            return service.getSwitchByNodeID(_tenant.id, node.id)
-        })
-        .then((switches: Array<SwitchApi.Switch>): void => {
-            _node.addLink('self', new HalApi.Link(req.originalUrl));
+        // Retrieve the requested node.
+        .then((node: NodeApi.Node): void => {
+            var representation: NodeApi.NodeRepresentation = NodeApi.NodeRepresentation.CreateRepresentation(request, (<any>request).tenantCode, node);
 
-            for(var i: number = 0; i < switches.length; i++) {
-                var tenantCode: string = (<any>req).tenantCode;
-
-                switches[i].addLink('self', new HalApi.Link('/' + tenantCode + '/switches/' + switches[i].id));
-                switches[i].addLink('$mode.alwaysOff', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/off', HalApi.HttpVerb.POST));
-                switches[i].addLink('$mode.alwaysOn', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/on', HalApi.HttpVerb.POST));
-                switches[i].addLink('$mode.scheduled', HalApi.Link.CreateWithMethod('/' + tenantCode + '/switches/' + switches[i].id + '/mode/scheduled', HalApi.HttpVerb.POST));
-
-            }
-
-            _node.createEmbeddedResource('switches', switches);
-
-            res.json(_node);
+            response.set('Content-Type', 'application/hal+json');
+            response.json(representation);
         })
         .catch((error: any) => {
-            res.sendStatus(401);
+            response.sendStatus(401);
         });
 });
 

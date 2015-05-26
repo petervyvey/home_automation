@@ -1,5 +1,8 @@
+/// <reference path='../../vendor/typings/references.d.ts' />
 
+import express = require('express');
 import Q = require('q');
+import UtilsApi = require('../../lib/Utils/Utils');
 import ArangoDBModule = require('../../lib/Data/ArangoDB');
 import DomainApi = require('./Domain');
 import SwitchApi = require('./Switch');
@@ -38,19 +41,57 @@ export class Node extends DomainApi.DomainObject implements INodeAttributes {
     public switches: Array<SwitchApi.Switch> = [];
 }
 
-
-export class NodeRepresentation extends HalApi.Representation implements INodeAttributes {
+export class NodeRepresentation extends HalApi.ResourceRepresentation implements INodeAttributes {
 
     constructor() {
         super();
     }
 
-    public id: string;
-    public tenantID: string
-    public code: string;
-    public description: string;
-    public validFrom: string;
-    public validUntil: string;
+    public static SELF_LINK_TEMPLATE: string = '/{0}/nodes/{1}';
+
+    public id:string;
+    public tenantID:string
+    public code:string;
+    public description:string;
+    public validFrom:string;
+    public validUntil:string;
+
+    public static CreateRepresentation(request: express.Request, tenantCode: string, node: Node): NodeRepresentation {
+        var switchRepresentations:any =
+            node.switches.map((_switch:SwitchApi.Switch) => {
+                return SwitchApi.SwitchRepresentation.CreateRepresentation(request, tenantCode, _switch);
+            });
+
+        var _node:NodeRepresentation =
+            NodeRepresentation.FromDomainObject(request, node)
+                .addSelfLink(request)
+                .addEmbeddedResource('switches', switchRepresentations)
+                .cast<NodeRepresentation>();
+
+        return _node;
+    }
+
+    public static FromDomainObject(request: express.Request, domainObject:Node):NodeRepresentation {
+        var representation:NodeRepresentation = new NodeRepresentation();
+
+        representation.id = domainObject.id;
+        representation.tenantID = domainObject.tenantID;
+        representation.code = domainObject.code;
+        representation.description = domainObject.description;
+        representation.validFrom = domainObject.validFrom;
+        representation.validUntil = domainObject.validUntil;
+
+        representation.createEmbeddedResource('switches');
+
+        return representation;
+    }
+
+    public buildSelfUrl(request: express.Request): string {
+
+        var href: string = UtilsApi.StringFormat.Format(NodeRepresentation.SELF_LINK_TEMPLATE, (<any>request).tenantCode, this.id);
+
+        return href;
+    }
 }
 
 export class NodeFactory {

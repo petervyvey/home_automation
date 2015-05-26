@@ -3,6 +3,7 @@
 import express = require('express');
 import Q = require('q');
 import ApplicationServiceModule = require('../lib/Domain/ApplicationService');
+import HalApi = require('../lib/Utils/Hal');
 import TenantApi = require('../lib/Domain/Tenant');
 import SwitchApi = require('../lib/Domain/Switch');
 
@@ -26,21 +27,24 @@ router.get('/', (req, res, next) => {
         });
 });
 
-router.get('/:switchID', (req, res, next) => {
+router.get('/:switchID', (request: express.Request, response: express.Response, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
-    service.getTenantByCode((<any>req).tenantCode)
+    service.getTenantByCode((<any>request).tenantCode)
         .then((tenant: TenantApi.Tenant): Q.Promise<SwitchApi.Switch> => {
             if (!tenant) {
                 throw 'UNKNOWN TENANT'
             }
 
-            return service.getSwitchByID(tenant.id, req.params.switchID)
+            return service.getSwitchByID(tenant.id, request.params.switchID)
         })
         .then((_switch: SwitchApi.Switch): void => {
-            res.json(_switch);
+            var representation: SwitchApi.SwitchRepresentation = BuildRepresentation(request, (<any>request).tenantCode, _switch);
+
+            response.set('Content-Type', 'application/hal+json');
+            response.json(representation);
         })
         .catch((error: any) => {
-            res.sendStatus(401);
+            response.sendStatus(401);
         });
 });
 

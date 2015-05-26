@@ -1,4 +1,4 @@
-/// <reference path="_reference.d.ts" />
+/// <reference path="../reference.d.ts" />
 
 angular.module('application', ['application.component', 'ngRoute', 'ui.router']);
 angular.module('application.component', []);

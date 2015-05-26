@@ -51,9 +51,18 @@ export class ApplicationService extends DomainApi.DomainService {
     public getNodeByID(tenantID: string, nodeID: string): Q.Promise<NodeApi.Node> {
         var deferred: Q.Deferred<NodeApi.Node> = Q.defer<NodeApi.Node>()
 
+        var _node: NodeApi.Node;
         this.nodeRepository.getByID(tenantID, nodeID)
-            .then((node: NodeApi.Node)=>{
-                deferred.resolve(node);
+            .then((node: NodeApi.Node) : Q.Promise<Array<SwitchApi.Switch>> => {
+                _node = node;
+
+                return this.getSwitchByNodeID(tenantID, node.id);
+            })
+            .then((switches: Array<SwitchApi.Switch>) : void => {
+                _node.switches = switches;
+
+                deferred.resolve(_node);
+                _node = null;
             });
 
         return deferred.promise;
@@ -62,11 +71,24 @@ export class ApplicationService extends DomainApi.DomainService {
     public getNodes(tenantID: string): Q.Promise<Array<NodeApi.Node>> {
         var deferred: Q.Deferred<Array<NodeApi.Node>> = Q.defer<Array<NodeApi.Node>>()
 
+        var _nodes: Array<NodeApi.Node>;
         this.nodeRepository.getList (tenantID)
             .then((nodes: Array<NodeApi.Node>)=>{
-                nodes.forEach((node: NodeApi.Node, index: number) => {console.log('node', node)}) ;
+                _nodes = nodes;
+                var promises: Array<Q.Promise<Array<SwitchApi.Switch>>> = _nodes.map((node: NodeApi.Node) => { return this.getSwitchByNodeID(tenantID, node.id); });
 
-                deferred.resolve(nodes);
+                return Q.all(promises);
+
+            })
+        .then((resultSet: Array<Array<SwitchApi.Switch>>) => {
+                for(var i: number=0; i < resultSet.length; i++){
+                    _nodes[i].switches = resultSet[i];
+                }
+
+                deferred.resolve(_nodes);
+
+                // Dereference closure.
+                _nodes = null;
             });
 
         return deferred.promise;

@@ -10,14 +10,14 @@ import HalApi = require('../lib/Utils/Hal');
 
 var router = express.Router();
 
-router.get('/:tenantID', (req, res, next) => {
+router.get('/:tenantID', (request: express.Request, res, next) => {
     var service : ApplicationServiceApi.ApplicationService = new ApplicationServiceApi.ApplicationService();
-    service.getTenantByCode((<any>req).tenantCode)
+    service.getTenantByCode((<any>request).tenantCode)
         .then((tenant: TenantApi.Tenant): void => {
 
             var _tenant: HalApi.Representation =
-                TenantApi.TenantRepresentation.FromDomainObject(tenant)
-                    .addLink('self', new HalApi.Link(req.originalUrl));
+                TenantApi.TenantRepresentation.CreateRepresentation(request, tenant.code, tenant)
+                    .addSelfLink(request);
 
             res.json(_tenant);
         })

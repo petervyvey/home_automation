@@ -8,31 +8,26 @@ module HomeAutomation.Lib.Service {
 
         static $inject = ['$http', '$q', '$tokenManager', '$configurationManager'];
 
-        constructor($http: ng.IHttpService, $q: ng.IQService, $tokenManager: HomeAutomation.Lib.Foundation.TokenManager, $configurationManager: HomeAutomation.Lib.Foundation.ConfigurationManager, serviceConfiguration: ServiceConfiguration) {
+        constructor($http: ng.IHttpService, $q: ng.IQService, serviceConfiguration: ServiceConfiguration) {
             this.$http = $http;
             this.$q = $q;
-            this.$tokenManager = $tokenManager;
-            this.$configurationManager = $configurationManager;
             this.serviceConfiguration = serviceConfiguration;
         }
 
         public $http: ng.IHttpService;
         public $q: ng.IQService;
-        public $tokenManager: HomeAutomation.Lib.Foundation.TokenManager;
-        public $configurationManager: HomeAutomation.Lib.Foundation.ConfigurationManager;
         public serviceConfiguration: ServiceConfiguration;
 
-        // ReSharper disable once UsingOfReservedWord
-        protected $getData<TDataTransferObject>(operation: string): ng.IPromise<TDataTransferObject> {
+        protected $getData<TRepresentation>(operation: string): ng.IPromise<TRepresentation> {
             var operationInfo: OperationInfo = new OperationInfo(this.serviceConfiguration.serviceUrl, operation);
 
-            var deferred: ng.IDeferred<TDataTransferObject> = this.$q.defer();
+            var deferred: ng.IDeferred<TRepresentation> = this.$q.defer();
 
             var config: ng.IRequestShortcutConfig = { headers: {} };
             config.headers = this.addCustomHttpHeaders();
 
             this.$http.get(operationInfo.endpoint(), config)
-                .success((data: TDataTransferObject) => {
+                .success((data: TRepresentation) => {
                     deferred.resolve(data);
                 })
                 .error((error: any) => {
@@ -42,27 +37,15 @@ module HomeAutomation.Lib.Service {
             return deferred.promise;
         }
 
-        // ReSharper disable once UsingOfReservedWord
-        protected $postData<TDataTransferObject>(operation: string, data: any): ng.IPromise<TDataTransferObject> {
+        protected $postData<TRepresentation>(operation: string, data: any): ng.IPromise<TRepresentation> {
             var operationInfo: OperationInfo = new OperationInfo(this.serviceConfiguration.serviceUrl, operation);
-            var promise: ng.IPromise<TDataTransferObject> = <ng.IPromise<TDataTransferObject>>this.$http.post(operationInfo.endpoint(), data);
+            var promise: ng.IPromise<TRepresentation> = <ng.IPromise<TRepresentation>>this.$http.post(operationInfo.endpoint(), data);
 
             return promise;
         }
 
         private addCustomHttpHeaders(): any {
             var headers: any = {};
-
-            if (this.$tokenManager) {
-                if (this.$tokenManager.userToken) {
-                    angular.extend(headers, { 'Authorization': 'Bearer ' + this.$tokenManager.userToken.accessToken });
-                }
-
-                if (this.$tokenManager) {
-                    angular.extend(headers, { 'SlidingApps-Warrant-Application-Context': angular.toJson({ runtime: this.$configurationManager.settings.runtimeConfiguration, context: this.$configurationManager.settings.applicationContext }) });
-                }
-            }
-
             return headers;
         }
     }

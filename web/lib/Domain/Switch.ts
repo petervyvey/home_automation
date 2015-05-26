@@ -1,7 +1,11 @@
+/// <reference path='../../vendor/typings/references.d.ts' />
 
+import express = require('express');
 import Q = require('q');
+import UtilsApi = require('../../lib/Utils/Utils');
 import ArangoDBApi = require('../../lib/Data/ArangoDB');
 import HalApi = require('../../lib/Utils/Hal');
+import DomainApi = require('./Domain');
 
 export interface ISwitchOptions {
     id: string;
@@ -25,7 +29,7 @@ export interface ISwitchAttributes extends ISwitchOptions {
     validUntil: string;
 }
 
-export class Switch extends HalApi.Representation implements ISwitchAttributes {
+export class Switch extends DomainApi.DomainObject implements ISwitchAttributes {
 
     constructor() {
         super();
@@ -39,6 +43,58 @@ export class Switch extends HalApi.Representation implements ISwitchAttributes {
     public mode: string;
     public validFrom: string;
     public validUntil: string;
+}
+
+export class SwitchRepresentation extends HalApi.ResourceRepresentation implements ISwitchAttributes {
+
+    constructor() {
+        super();
+    }
+
+    public static SELF_LINK_TEMPLATE:string = '/{0}/switches/{1}';
+
+    public id:string;
+    public nodeID:string
+    public code:string;
+    public description:string;
+    public state:string;
+    public mode:string;
+    public validFrom:string;
+    public validUntil:string;
+
+    public static CreateRepresentation(request:express.Request, tenantCode:string, _switch:Switch):SwitchRepresentation {
+        var switchRepresentation:SwitchRepresentation =
+            SwitchRepresentation.FromDomainObject(request, _switch)
+                .addLink('self', new HalApi.Link(request, '/' + tenantCode + '/switches/' + _switch.id))
+                .addLink('$mode.alwaysOff', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/off', HalApi.HttpVerb.POST))
+                .addLink('$mode.alwaysOn', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/on', HalApi.HttpVerb.POST))
+                .addLink('$mode.scheduled', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/scheduled', HalApi.HttpVerb.POST))
+                .cast<SwitchRepresentation>();
+
+        return switchRepresentation;
+    }
+
+    public static FromDomainObject(request:express.Request, domainObject:Switch):SwitchRepresentation {
+        var representation:SwitchRepresentation = new SwitchRepresentation();
+
+        representation.id = domainObject.id;
+        representation.nodeID = domainObject.nodeID;
+        representation.code = domainObject.code;
+        representation.description = domainObject.description;
+        representation.mode = domainObject.mode;
+        representation.state = domainObject.state;
+        representation.validFrom = domainObject.validFrom;
+        representation.validUntil = domainObject.validUntil;
+
+        return representation;
+    }
+
+    public buildSelfUrl(request:express.Request):string {
+
+        var href:string = UtilsApi.StringFormat.Format(SwitchRepresentation.SELF_LINK_TEMPLATE, (<any>request).tenantCode, this.id);
+
+        return href;
+    }
 }
 
 export class SwitchFactory {
