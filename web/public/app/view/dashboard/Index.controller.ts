@@ -7,12 +7,12 @@ module HomeAutomation.Dashboard {
 
     export class IndexController {
 
-        static $inject = ['$scope', '$restService'];
+        static $inject = ['$scope', '$restServiceFactory'];
 
-        constructor($scope: any, $restService: HomeAutomation.Lib.Service.RestService){
+        constructor($scope: any, RestServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory){
             this.$localScope = this.$scope = $scope;
 
-            this.$restService = $restService;
+            this.RestServiceFactory = RestServiceFactory;
 
             this.initialize();
         }
@@ -20,12 +20,15 @@ module HomeAutomation.Dashboard {
         private $scope: any;
         private $localScope : IIndexScope;
 
-        private $restService: HomeAutomation.Lib.Service.RestService;
+        private RestServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory;
 
         private initialize(): void {
-            this.$restService.getNodes().then((nodes: HomeAutomation.Lib.Service.Representation) => {
+            console.log('RestServiceFactory', this.RestServiceFactory);
 
-            });
+            this.RestServiceFactory
+                .host('http://localhost:3000/')
+                .api({apiPathTemplate: 'api/{tenantCode}/', apiTemplateValues: {tenantCode: 'home'}})
+                .resource({name: 'nodes'});
         }
     }
 
