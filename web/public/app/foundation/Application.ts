@@ -10,11 +10,16 @@ angular.module('application')
             delete $httpProvider.defaults.headers.common["X-Requested-With"];
         }
     ])
-    //.config([
-    //    '$applicationServiceProvider', ($applicationServiceProvider: Attentia.Evolution.Home.Web.Service.ApplicationServiceProvider) => {
-    //        $applicationServiceProvider.setServiceConfig(new Attentia.Service.ServiceConfiguration('//localhost:52308/api/workflow'));
-    //    }
-    //])
+    .config([
+        '$restServiceFactoryProvider', ($restServiceFactoryProvider: HomeAutomation.Lib.Rest.RestServiceFactoryProvider) => {
+            var configuration: HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration = new HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration();
+            configuration.hostUrl = 'http://localhost:3000';
+            configuration.pathTemplate = 'home/api';
+            configuration.pathTemplateValues = null;
+
+            $restServiceFactoryProvider.setServiceConfig(configuration);
+        }
+    ])
     .config([
         '$urlRouterProvider', '$locationProvider', ($urlRouterProvider, $locationProvider) => {
             $locationProvider.html5Mode(false).hashPrefix();

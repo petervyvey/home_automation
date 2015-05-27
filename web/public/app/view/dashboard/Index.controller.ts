@@ -9,9 +9,9 @@ module HomeAutomation.Dashboard {
 
         static $inject = ['$scope', '$restServiceFactory'];
 
-        constructor($scope: any, RestServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory){
+        constructor($scope: any, $restServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory){
             this.$localScope = this.$scope = $scope;
-            this.RestServiceFactory = RestServiceFactory;
+            this.$restServiceFactory = $restServiceFactory;
 
             this.initialize();
         }
@@ -19,16 +19,23 @@ module HomeAutomation.Dashboard {
         private $scope: any;
         private $localScope : IIndexScope;
 
-        private RestServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory;
+        private $restServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory;
 
         private initialize(): void {
-            console.log('RestServiceFactory', this.RestServiceFactory);
+            console.log('RestServiceFactory', this.$restServiceFactory);
 
-            var service: HomeAutomation.Lib.Rest.RestService =
-                this.RestServiceFactory
-                    .host('http://localhost:3000/')
-                    .path('api/portal')
-                    .resource(HomeAutomation.Lib.Model.Node.RESOURCE);
+            var service: any =
+                this.$restServiceFactory
+                    //.host('http://localhost:3000/')
+                    //.path('home/api/')
+                    .resource(HomeAutomation.Lib.Model.Node.RESOURCE)
+                    .all<HomeAutomation.Lib.Model.INodeCollection>()
+                    .then((data: HomeAutomation.Lib.Model.INodeCollection) => {
+                        console.log('data', data);
+
+                        var nodeID = data._embedded.nodes[0].id;
+                        console.log('nodeID', nodeID);
+                    });
         }
     }
 
