@@ -4,43 +4,45 @@ module HomeAutomation.Lib.Rest {
 
     export class RestServiceFactoryProvider implements ng.IServiceProvider {
         $get = ['$http', '$q', ($http: ng.IHttpService, $q: ng.IQService) => {
-            return new RestServiceFactory($http, $q, this.configuration);
+            return new RestServiceFactory($http, $q, this.baseRestService);
         }];
 
-        private configuration: RestServiceConfiguration;
+        private baseRestService: RestService;
 
-        setServiceConfig(configuration: RestServiceConfiguration): void {
-            this.configuration = configuration;
+        setServiceConfig(configuration: RestService): void {
+            this.baseRestService = configuration;
         }
     }
 
-    export class RestServiceFactory {
+    export class RestServiceFactory implements IRestServiceApi{
 
-        constructor($http: ng.IHttpService, $q: ng.IQService, configuration?: RestServiceConfiguration) {
+        constructor($http:ng.IHttpService, $q:ng.IQService, baseRestService?: RestService) {
             this.$http = $http;
             this.$q = $q;
-            this.configuration = configuration != null ? configuration : new RestServiceConfiguration();
+            this.baseRestService = baseRestService != null ? baseRestService : new RestService();
         }
 
         public $http: ng.IHttpService;
         public $q: ng.IQService;
-        public configuration: RestServiceConfiguration;
+        public baseRestService: RestService;
 
-        public host(options: string|IHostOptions): IRestServiceConfiguration {
-            var _options: IHostOptions =  typeof options === 'string' ? { hostUrl: options }: options;
-            var configuration: IRestServiceConfiguration = angular.extend(this.configuration, _options);
-
-            return configuration;
-        }
-
-        public api(options: string|IApiOptions): IRestServiceConfiguration {
-            var configuration: IRestServiceConfiguration = angular.extend(this.configuration, options != null ? options : {});
+        public host(options: string|IHostOptions): IRestService {
+            var _options: IHostOptions = typeof options === 'string' ? {hostUrl: options} : options;
+            var configuration: IRestService = angular.extend(new RestService(), this.baseRestService, _options);
 
             return configuration;
         }
 
-        public resource(options: string|IResourceOptions): IRestServiceConfiguration {
-            var configuration: IRestServiceConfiguration = angular.extend(this.configuration, options != null ? options : {});
+        public path(options: string|IApiOptions): IRestService {
+            var _options: IApiOptions = typeof options === 'string' ? {pathTemplate: options} : options;
+            var configuration:IRestService = angular.extend(new RestService(), this.baseRestService, _options);
+
+            return configuration;
+        }
+
+        public resource(options: string|IResourceOptions): IRestService {
+            var _options: IResourceOptions = typeof options === 'string' ? {resourceName: options} : options;
+            var configuration: IRestService = angular.extend(new RestService(), this.baseRestService, _options);
 
             return configuration;
         }
@@ -55,48 +57,60 @@ module HomeAutomation.Lib.Rest {
     }
 
     export interface IApiOptions {
-        apiPathTemplate: string;
-        apiTemplateValues?: any
+        pathTemplate: string;
+        pathTemplateValues?: any
     }
 
     export interface IApiConfiguration extends IApiOptions {
-        apiPathTemplate: string;
-        apiTemplateValues: any
+        pathTemplate: string;
+        pathTemplateValues: any
     }
 
     export interface IResourceOptions {
-        name: string;
+        resourceName: string;
     }
 
     export interface IResourceConfiguration extends IResourceOptions {
-        name: string;
+        resourceName: string;
     }
 
-    export interface IRestServiceConfiguration extends IHostConfiguration, IApiConfiguration {
+    export interface IRestServiceApi {
         host(options: string|IHostOptions);
-        api(options: string|IApiOptions): IRestServiceConfiguration;
-        resource(options: string|IResourceOptions): IRestServiceConfiguration
+        path(options: string|IApiOptions): IRestService;
+        resource(options: string|IResourceOptions): IRestService
     }
 
-    export class RestServiceConfiguration implements IRestServiceConfiguration {
+    export interface IRestService extends IRestServiceApi, IHostConfiguration, IApiConfiguration, IResourceConfiguration {
+
+    }
+
+    export class RestService implements IRestService {
         public hostUrl: string;
-        public apiPathTemplate: string;
-        public apiTemplateValues: any;
+        public pathTemplate: string;
+        public pathTemplateValues: any;
+        public resourceName: string;
 
-        public host(options: string|IHostOptions): IRestServiceConfiguration {
-            var configuration: IRestServiceConfiguration = angular.extend(this, options != null ? options : {});
+        public host(options: string|IHostOptions): IRestService {
+            var _options: IHostOptions =  typeof options === 'string' ? { hostUrl: options }: options;
 
-            return this;
-        }
-
-        public api(options: IApiOptions): IRestServiceConfiguration {
-            var configuration: IRestServiceConfiguration = angular.extend(this, options != null ? options : {});
+            this.hostUrl = _options.hostUrl
 
             return this;
         }
 
-        public resource(options: string|IResourceOptions): IRestServiceConfiguration {
-            var configuration: IRestServiceConfiguration = angular.extend(this, options != null ? options : {});
+        public path(options: string|IApiOptions): IRestService {
+            var _options: IApiOptions =  typeof options === 'string' ? { pathTemplate: options }: options;
+
+            this.pathTemplate = _options.pathTemplate;
+            this.pathTemplateValues = _options.pathTemplateValues;
+
+            return this;
+        }
+
+        public resource(options: string|IResourceOptions): IRestService {
+            var _options: IResourceOptions = typeof options === 'string' ? { resourceName: options.toString() }: options;
+
+            this.resourceName = _options.resourceName;
 
             return this;
         }

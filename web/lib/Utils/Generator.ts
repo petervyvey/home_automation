@@ -9,7 +9,7 @@ export class Generator {
         });
     }
 
-    public static NewId(length?: number): string {
-        return Math.random().toString(36).replace(/[^a-z^A-Z]+/g, '').substr(0, length ? length : 5);
+    public static NewId(length: number = 5): string {
+        return Math.random().toString(36).replace(/[^a-z^A-Z]+/g, '').substr(0, length);
     }
 }

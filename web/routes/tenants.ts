@@ -22,6 +22,7 @@ router.get('/:tenantID', (request: express.Request, res, next) => {
             res.json(_tenant);
         })
         .catch((error: any) => {
+            console.log(error);
             res.sendStatus(401);
         });
 });

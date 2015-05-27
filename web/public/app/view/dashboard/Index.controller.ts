@@ -11,7 +11,6 @@ module HomeAutomation.Dashboard {
 
         constructor($scope: any, RestServiceFactory: HomeAutomation.Lib.Rest.RestServiceFactory){
             this.$localScope = this.$scope = $scope;
-
             this.RestServiceFactory = RestServiceFactory;
 
             this.initialize();
@@ -25,10 +24,11 @@ module HomeAutomation.Dashboard {
         private initialize(): void {
             console.log('RestServiceFactory', this.RestServiceFactory);
 
-            this.RestServiceFactory
-                .host('http://localhost:3000/')
-                .api({apiPathTemplate: 'api/{tenantCode}/', apiTemplateValues: {tenantCode: 'home'}})
-                .resource({name: 'nodes'});
+            var service: HomeAutomation.Lib.Rest.RestService =
+                this.RestServiceFactory
+                    .host('http://localhost:3000/')
+                    .path('api/portal')
+                    .resource(HomeAutomation.Lib.Model.Node.RESOURCE);
         }
     }
 
