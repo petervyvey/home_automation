@@ -27,26 +27,26 @@ module HomeAutomation.Lib.Rest {
         public $q: ng.IQService;
         public configuration: RestServiceFactoryConfiguration;
 
-        public host(options: string|IHostOptions): RestService {
+        public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions = typeof options === 'string' ? {hostUrl: options} : options;
             var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestService = new RestService(this.$http, this.$q, configuration);
+            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return service;
         }
 
-        public path(options: string|IApiOptions): RestService {
+        public path(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions = typeof options === 'string' ? {pathTemplate: options} : options;
             var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestService = new RestService(this.$http, this.$q, configuration);
+            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return service;
         }
 
-        public resource(options: string|IResourceOptions): RestService {
+        public resource(options: string|IResourceOptions): RestServiceConnector {
             var _options: IResourceOptions = typeof options === 'string' ? {resourceName: options} : options;
             var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestService = new RestService(this.$http, this.$q, configuration);
+            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return service;
         }
@@ -85,9 +85,9 @@ module HomeAutomation.Lib.Rest {
     }
 
     export interface IRestServiceConfigurationApi {
-        host(options: string|IHostOptions): RestService;
-        path(options: string|IApiOptions): RestService;
-        resource(options: string|IResourceOptions): RestService
+        host(options: string|IHostOptions): RestServiceConnector;
+        path(options: string|IApiOptions): RestServiceConnector;
+        resource(options: string|IResourceOptions): RestServiceConnector
     }
 
     export class RestServiceConfiguration implements IHostConfiguration, IApiConfiguration, IResourceConfiguration {
@@ -101,7 +101,7 @@ module HomeAutomation.Lib.Rest {
         all<TRepresentation>(): ng.IPromise<TRepresentation>;
     }
 
-    export class RestService2 implements IRestServiceApi, IRestServiceConfigurationApi {
+    export class RestServiceConnector implements IRestServiceApi, IRestServiceConfigurationApi {
 
         constructor($http:ng.IHttpService, $q:ng.IQService, configuration: RestServiceConfiguration) {
             this.$http = $http;
@@ -117,7 +117,7 @@ module HomeAutomation.Lib.Rest {
 
         public configuration: RestServiceConfiguration;
 
-        public host(options: string|IHostOptions): RestService {
+        public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions =  typeof options === 'string' ? { hostUrl: options }: options;
 
             this.configuration.hostUrl = _options.hostUrl;
@@ -125,7 +125,7 @@ module HomeAutomation.Lib.Rest {
             return this;
         }
 
-        public path(options: string|IApiOptions): RestService {
+        public path(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions =  typeof options === 'string' ? { pathTemplate: options }: options;
 
             this.configuration.pathTemplate = _options.pathTemplate;
@@ -134,7 +134,7 @@ module HomeAutomation.Lib.Rest {
             return this;
         }
 
-        public resource(options: string|IResourceOptions): RestService {
+        public resource(options: string|IResourceOptions): RestServiceConnector {
             var _options: IResourceOptions = typeof options === 'string' ? { resourceName: options.toString() }: options;
 
             this.configuration.resourceName = _options.resourceName;
@@ -172,7 +172,7 @@ module HomeAutomation.Lib.Rest {
                 this.configuration.pathTemplate = this.configuration.pathTemplate.substr(0, this.configuration.pathTemplate.length - 1);
             }
 
-            var endpoint: string = this.configuration.hostUrl + RestService.DELIMITER + this.configuration.pathTemplate + RestService.DELIMITER + this.configuration.resourceName;
+            var endpoint: string = this.configuration.hostUrl + RestServiceConnector.DELIMITER + this.configuration.pathTemplate + RestServiceConnector.DELIMITER + this.configuration.resourceName;
 
             return endpoint;
         }
@@ -180,4 +180,4 @@ module HomeAutomation.Lib.Rest {
 
 }
 
-angular.module('application.component').provider('$restService', HomeAutomation.Lib.Rest.RestServiceFactoryProvider);
+angular.module('application.component').provider('$restService', HomeAutomation.Lib.Rest.RestServiceProvider);

@@ -4,4 +4,5 @@
 /// <reference path='lib/service/RestServiceFactory.ts' />
 /// <reference path='lib/model/Hal.ts' />
 
-/// <reference path='lib/model/Node.ts' />
+/// <reference path='lib/representation/Node.ts' />
+/// <reference path='lib/representation/Switch.ts' />

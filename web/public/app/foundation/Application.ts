@@ -11,7 +11,7 @@ angular.module('application')
         }
     ])
     .config([
-        '$restServiceFactoryProvider', ($restServiceFactoryProvider: HomeAutomation.Lib.Rest.RestServiceFactoryProvider) => {
+        '$restServiceProvider', ($restServiceFactoryProvider: HomeAutomation.Lib.Rest.RestServiceProvider) => {
             var configuration: HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration = new HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration();
             configuration.hostUrl = 'http://localhost:3000';
             configuration.pathTemplate = 'home/api';

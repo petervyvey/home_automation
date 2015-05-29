@@ -3,12 +3,21 @@
 module HomeAutomation.Lib.Model {
 
     export interface IRepresentation {
-        _link: any;
-        _embedded: Array<any>;
+        _links: ILinkSet;
+        _embedded: any;
     }
 
-    export interface ICollectionRepresentation<TEmbeddedRepresentationCollection> extends IRepresentation {
-        _embedded: TEmbeddedRepresentationCollection;
+    export interface ICollectionRepresentation<TEmbeddedCollection> extends IRepresentation {
+        _embedded: TEmbeddedCollection;
     }
 
+    export interface ILinkSet {
+        self: ILink;
+    }
+
+    export interface ILink {
+        href: string;
+        method: string;
+        templated: boolean;
+    }
 }

@@ -91,6 +91,19 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div data-ng-repeat="node in nodes._embedded.nodes">
+                    <div data-ng-bind="node.code"></div>
+                    <div data-ng-repeat="switch in node._embedded.switches">
+                        <div data-ng-bind="switch.code"></div>
+                        <div>{{ switch._links['$mode.alwaysOn'] | json }}</div>
+                        <hr />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="col-md-6">
