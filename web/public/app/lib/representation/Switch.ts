@@ -11,6 +11,10 @@ module Resource {
         nodeID: string;
         code: string;
         description: string;
+        state: string;
+        mode: string;
+        validFrom: string;
+        validUntil: string;
     }
 
     export interface ISwitchCollection extends HomeAutomation.Lib.Model.ICollectionRepresentation<IEmbeddedSwitchCollection>  {

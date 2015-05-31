@@ -14,7 +14,7 @@ angular.module('application')
         '$restServiceProvider', ($restServiceFactoryProvider: HomeAutomation.Lib.Rest.RestServiceProvider) => {
             var configuration: HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration = new HomeAutomation.Lib.Rest.RestServiceFactoryConfiguration();
             configuration.hostUrl = 'http://localhost:3000';
-            configuration.pathTemplate = 'home/api';
+            configuration.pathTemplate = 'petervyvey/api';
             configuration.pathTemplateValues = null;
 
             $restServiceFactoryProvider.setServiceConfig(configuration);

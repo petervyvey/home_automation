@@ -3,8 +3,23 @@
 module HomeAutomation.Dashboard {
 
     interface IIndexScope extends ng.IRootScopeService {
-        nodes: Resource.INodeCollection;
+        presentationRule: PresentationRule;
+        representation: Resource.INodeCollection;
         onSwitchClicked: (link: HomeAutomation.Lib.Model.ILink) => void;
+    }
+
+    export class PresentationRule {
+        showSwitchAlwaysOnIcon(_switch: Resource.ISwitch): boolean {
+            return _switch.mode.toLocaleLowerCase() === 'alwayson' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'on');
+        }
+
+        showSwitchAlwaysOffIcon(_switch: Resource.ISwitch): boolean {
+            return _switch.mode.toLocaleLowerCase() === 'alwaysoff' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'off');
+        }
+
+        isScheduled(_switch: Resource.ISwitch): boolean {
+            return _switch.mode.toLocaleLowerCase() === 'scheduled';
+        }
     }
 
     export class IndexController {
@@ -25,6 +40,8 @@ module HomeAutomation.Dashboard {
 
         private initialize(): void {
 
+            this.$localScope.presentationRule = new PresentationRule();
+
             this.$localScope.onSwitchClicked = (link: HomeAutomation.Lib.Model.ILink) => {
                 console.log(link);
             };
@@ -36,10 +53,7 @@ module HomeAutomation.Dashboard {
                     .resource(Resource.Node.NAME)
                     .all<Resource.INodeCollection>()
                     .then((data: Resource.INodeCollection) => {
-                        this.$localScope.nodes = data;
-
-                        //var collection: Resource.INodeCollection = data;
-                        //var switchID: string = collection._embedded.nodes[0]._embedded.switches[0].id;
+                        this.$localScope.representation = data;
                     });
         }
     }
