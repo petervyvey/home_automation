@@ -48,8 +48,8 @@ module HomeAutomation.Dashboard {
 
             var service: any =
                 this.$restService
-                    //.host('http://localhost:3000/')
-                    //.path('home/api/')
+                    .host('http://localhost:3000/')
+                    .api('petervyvey/api/')
                     .resource(Resource.Node.NAME)
                     .all<Resource.INodeCollection>()
                     .then((data: Resource.INodeCollection) => {
