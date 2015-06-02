@@ -49,19 +49,21 @@ module HomeAutomation.Dashboard {
             this.$restService
                 .host('http://localhost:3000/')
                 .api('petervyvey/api/')
-                .resource(Resource.Node.NAME)
-                .all<Resource.INodeCollection>()
+                .one({name: Resource.Node.NAME, id: '50af70d9-9ad1-4c53-8391-83c006b3668b'})
+                .query({active: false, page: 1, pageSize: 20})
+                .get()
                 .then((data:Resource.INodeCollection) => {
-                    this.$localScope.representation = data;
+                    console.log(data);
                 });
 
             this.$restService
                 .host('http://localhost:3000/')
                 .api('petervyvey/api/')
-                .resource(Resource.Node.NAME)
-                .one('50af70d9-9ad1-4c53-8391-83c006b3668b', {active: false, page: 1, pageSize: 20})
+                .all(Resource.Node.NAME)
+                .query({active: false, page: 1, pageSize: 20})
+                .get()
                 .then((data:Resource.INodeCollection) => {
-                    console.log(data);
+                    this.$localScope.representation = data;
                 });
         }
     }

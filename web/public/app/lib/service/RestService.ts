@@ -4,228 +4,118 @@ module HomeAutomation.Lib.Rest {
 
     var DELIMITER: string = '/';
 
-    export class RestServiceProvider implements ng.IServiceProvider {
-        $get = ['$http', '$q', ($http: ng.IHttpService, $q: ng.IQService) => {
+    export class RestServiceProvider implements angular.IServiceProvider {
+        $get = ['$http', '$q', ($http: angular.IHttpService, $q: angular.IQService) => {
             return new RestService($http, $q, this.configuration);
         }];
 
-        private configuration: RestServiceFactoryConfiguration;
+        private configuration: RestServiceConfiguration;
 
-        setServiceConfig(configuration: RestServiceFactoryConfiguration): void {
+        setServiceConfig(configuration: RestServiceConfiguration): void {
             this.configuration = configuration;
         }
     }
 
-    export class RestService implements IRestServiceConfigurationApi {
+    export class RestService {
 
-        constructor($http:ng.IHttpService, $q:ng.IQService, configuration: RestServiceFactoryConfiguration) {
+        constructor($http: angular.IHttpService, $q: angular.IQService, configuration: RestServiceConfiguration) {
             this.$http = $http;
             this.$q = $q;
 
-            this.configuration = configuration != null ? configuration : new RestServiceFactoryConfiguration();
+            this.configuration = configuration != null ? configuration : new RestServiceConfiguration();
         }
 
-        public $http: ng.IHttpService;
-        public $q: ng.IQService;
-        public configuration: RestServiceFactoryConfiguration;
-
-        public host(options: string|IHostOptions): RestServiceConnector {
-            var _options: IHostOptions = typeof options === 'string' ? {hostUrl: options} : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
-
-            return service;
-        }
-
-        public api(options: string|IApiOptions): RestServiceConnector {
-            var _options: IApiOptions = typeof options === 'string' ? {apiPath: options} : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
-
-            return service;
-        }
-
-        public resource(options: string|IResourceOptions): RestServiceConnector {
-            var _options: IResourceOptions = typeof options === 'string' ? {resourceName: options} : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration, _options);
-            var service: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
-
-            return service;
-        }
-    }
-
-    export class RestServiceFactoryConfiguration {
-        public hostUrl: string = 'http://localhost/';
-        public pathTemplate: string = 'api';
-        public pathTemplateValues: any = null;
-    }
-
-    interface IKeyValuePair<TValue> {
-        key: string;
-        value: TValue;
-    }
-
-    export interface IHostOptions {
-        hostUrl?: string;
-    }
-
-    export interface IHostConfiguration extends IHostOptions{
-        hostUrl: string;
-    }
-
-    export interface IApiOptions {
-        apiPath: string;
-        apiPathValues?: any
-    }
-
-    export interface IApiConfiguration extends IApiOptions {
-        apiPath: string;
-        apiPathValues: any
-    }
-
-    export interface IResourceOptions {
-        resourceName: string;
-    }
-
-    export interface IResourceConfiguration extends IResourceOptions {
-        resourceName: string;
-    }
-
-    export interface IRestServiceConfigurationApi {
-        host(options: string|IHostOptions): RestServiceConnector;
-        api(options: string|IApiOptions): RestServiceConnector;
-        resource(options: string|IResourceOptions): RestServiceConnector
-    }
-
-    export class RestServiceConfiguration implements IHostConfiguration, IApiConfiguration, IResourceConfiguration {
-        public hostUrl: string = 'http://localhost/';
-        public apiPath: string = 'api';
-        public apiPathValues: any = null;
-        public resourceName: string = '';
-    }
-
-    export interface IRestServiceApi {
-        all<TRepresentation>(query?: any): angular.IPromise<TRepresentation>;
-        one<TRepresentation>(identifier: string, query?: any): angular.IPromise<TRepresentation>;
-        several<TRepresentation>(identifiers: Array<string>, query?: any): angular.IPromise<TRepresentation>;
-    }
-
-    export class RestServiceConnector implements IRestServiceApi, IRestServiceConfigurationApi {
-
-        constructor($http:ng.IHttpService, $q:ng.IQService, configuration: RestServiceConfiguration) {
-            this.$http = $http;
-            this.$q = $q;
-
-            this.configuration = configuration;
-        }
-
-        private $q: ng.IQService;
-        private $http: ng.IHttpService;
-
+        public $http: angular.IHttpService;
+        public $q: angular.IQService;
         public configuration: RestServiceConfiguration;
 
-        public host(options: string|IHostOptions): RestServiceConnector {
-            var _options: IHostOptions =  typeof options === 'string' ? { hostUrl: options }: options;
+        public host(options: string|IHostOptions): RestServiceEndpoint {
+            var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
+            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
 
-            this.configuration.hostUrl = _options.hostUrl;
-
-            return this;
+            return endpoint;
         }
 
-        public api(options: string|IApiOptions): RestServiceConnector {
-            var _options: IApiOptions =  typeof options === 'string' ? { apiPath: options }: options;
+        public api(options: string|IApiOptions): RestServiceEndpoint {
+            var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
+            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
 
-            this.configuration.apiPath = _options.apiPath;
-            this.configuration.apiPathValues = _options.apiPathValues;
-
-            return this;
+            return endpoint;
         }
-
-        public resource(options: string|IResourceOptions): RestServiceConnector {
-            var _options: IResourceOptions = typeof options === 'string' ? { resourceName: options.toString() }: options;
-
-            this.configuration.resourceName = _options.resourceName;
-
-            return this;
-        }
-
-        public all<TRepresentation>(query?: any): angular.IPromise<TRepresentation> {
-            var endpoint: RestServiceEndpoint = RestServiceEndpoint.Create(this.$http, this.$q, this.configuration);
-
-            return endpoint.all(query);
-        }
-
-        public one<TRepresentation>(identifier: string, query?: any): angular.IPromise<TRepresentation> {
-            var endpoint: RestServiceEndpoint = RestServiceEndpoint.Create(this.$http, this.$q, this.configuration);
-
-            return endpoint.one(identifier, query);
-        }
-
-        public several<TRepresentation>(identifiers: Array<string>, query?: any): angular.IPromise<Array<TRepresentation>> {
-            var promises: Array<angular.IPromise<TRepresentation>> = [];
-
-            var config: angular.IRequestShortcutConfig = { headers: {} };
-            //config.headers = this.addCustomHttpHeaders();
-
-            for (var i = 0; i < identifiers.length; i++) {
-                var promise: angular.IPromise<TRepresentation> = this.one<TRepresentation>(identifiers[i], query);
-                promises.push(promise);
-            }
-
-            return this.$q.all(promises);
-        }
-
     }
 
-    export interface IEndpointOptions {
-        url: string;
-    }
+    export class RestServiceEndpoint {
 
-    export interface IEndpointConfiguration extends IEndpointOptions {
-        url: string;
-    }
-
-    export class RestServiceEndpoint implements IRestServiceApi {
-
-        constructor($http:ng.IHttpService, $q:ng.IQService, options: IEndpointOptions) {
+        constructor($http: angular.IHttpService, $q: angular.IQService, configuration: RestServiceConfiguration) {
             this.$http = $http;
             this.$q = $q;
 
-            this.endpoint = endpoint;
+            this.configuration = configuration;
         }
 
-        private $q: ng.IQService;
-        private $http: ng.IHttpService;
+        private $q: angular.IQService;
+        private $http: angular.IHttpService;
 
-        private endpoint: string;
+        private configuration: RestServiceConfiguration;
+        private resources: Array<ResourceConfiguration> = [];
+        private queryString: string = '';
 
-        public static Create($http:ng.IHttpService, $q:ng.IQService, configuration: RestServiceConfiguration): RestServiceEndpoint {
-            if (configuration.hostUrl[configuration.hostUrl.length - 1] === '/') {
-                configuration.hostUrl = configuration.hostUrl.substr(0, configuration.hostUrl.length - 1);
-            }
+        public host(options: string|IHostOptions): RestServiceEndpoint {
+            var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
+            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
+            var service: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
 
-            if (configuration.apiPath[0] === '/') {
-                configuration.apiPath = configuration.apiPath.substr(1);
-            }
-
-            if (configuration.apiPath[configuration.apiPath.length - 1] === '/') {
-                configuration.apiPath = configuration.apiPath.substr(0, configuration.apiPath.length - 1);
-            }
-
-            var endpoint:string = configuration.hostUrl + DELIMITER + configuration.apiPath + DELIMITER + configuration.resourceName;
-
-            return new RestServiceEndpoint($http, $q, endpoint);
+            return this;
         }
 
-        public all<TRepresentation>(query?: any): angular.IPromise<TRepresentation> {
+        public api(options: string|IApiOptions): RestServiceEndpoint {
+            var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
+            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
+            var service: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
+
+            return this;
+        }
+
+        public query(query: any): RestServiceEndpoint {
+            this.queryString = this.buildQueryString(query);
+
+            return this;
+        }
+
+        public all<TRepresentation>(options: string|IResourceOptions): RestServiceEndpoint {
+            var _options: IResourceOptions = typeof options === 'string' ? { name: options.toString() } : options;
+            var configuration: ResourceConfiguration = new ResourceConfiguration(_options.name);
+
+            this.resources.push(configuration);
+
+            return this;
+        }
+
+        public one<TRepresentation>(options: IResourceOptions): RestServiceEndpoint {
+            var _options: IResourceOptions = typeof options === 'string' ? { name: options.toString() } : options;
+            var configuration: ResourceConfiguration = new ResourceConfiguration(_options.name, _options.id);
+
+            this.resources.push(configuration);
+
+            return this;
+        }
+
+        public get<TRepresentation>(): angular.IPromise<TRepresentation> {
             var deferred: angular.IDeferred<TRepresentation> = this.$q.defer();
 
             var config: angular.IRequestShortcutConfig = { headers: {} };
             //config.headers = this.addCustomHttpHeaders();
 
-            this.endpoint = this.endpoint + this.buildQueryString(query);
+            var endpoint: string = this.buildEndpoint();
+            this.resources.forEach((resource: ResourceConfiguration) => {
+                endpoint = endpoint + DELIMITER + resource.name + (resource.id ? '/' + resource.id : '');
+            });
 
-            this.$http.get(this.endpoint, config)
+            endpoint = endpoint + this.queryString;
+
+            this.$http.get(endpoint, config)
                 .success((data: TRepresentation) => {
                     deferred.resolve(data);
                 })
@@ -236,38 +126,22 @@ module HomeAutomation.Lib.Rest {
             return deferred.promise;
         }
 
-        public one<TRepresentation>(identifier: string, query?: any): angular.IPromise<TRepresentation> {
-            var deferred: angular.IDeferred<TRepresentation> = this.$q.defer();
-
-            var config: angular.IRequestShortcutConfig = { headers: {} };
-            //config.headers = this.addCustomHttpHeaders();
-
-            this.endpoint = this.endpoint + (identifier ? '/' + identifier : '');
-            this.endpoint = this.endpoint + this.buildQueryString(query);
-
-            this.$http.get(this.endpoint, config)
-                .success((data: TRepresentation) => {
-                    deferred.resolve(data);
-                })
-                .error((error: any) => {
-                    deferred.reject(error);
-                });
-
-            return deferred.promise;
-        }
-
-        public several<TRepresentation>(identifiers: Array<string>, query?: any): angular.IPromise<Array<TRepresentation>> {
-            var promises: Array<angular.IPromise<TRepresentation>> = [];
-
-            var config: angular.IRequestShortcutConfig = { headers: {} };
-            //config.headers = this.addCustomHttpHeaders();
-
-            for (var i = 0; i < identifiers.length; i++) {
-                var promise: angular.IPromise<TRepresentation> = this.one<TRepresentation>(identifiers[i], query);
-                promises.push(promise);
+        public buildEndpoint(): string {
+            if (this.configuration.host.url[this.configuration.host.url.length - 1] === '/') {
+                this.configuration.host.url = this.configuration.host.url.substr(0, this.configuration.host.url.length - 1);
             }
 
-            return this.$q.all(promises);
+            if (this.configuration.api.path[0] === '/') {
+                this.configuration.api.path = this.configuration.api.path.substr(1);
+            }
+
+            if (this.configuration.api.path[this.configuration.api.path.length - 1] === '/') {
+                this.configuration.api.path = this.configuration.api.path.substr(0, this.configuration.api.path.length - 1);
+            }
+
+            var endpoint: string = this.configuration.host.url + DELIMITER + this.configuration.api.path;
+
+            return endpoint;
         }
 
         private buildQueryString(query: any): string {
@@ -295,7 +169,79 @@ module HomeAutomation.Lib.Rest {
 
             return queryString != '' ? '?' + queryString : queryString;
         }
+    }
 
+    // -------------------------------------------------------------------------------------------------------------
+    // OPTIONS & CONFIGURATIONS
+    // -------------------------------------------------------------------------------------------------------------
+
+    interface IKeyValuePair<TValue> {
+        key: string;
+        value: TValue;
+    }
+
+    export interface IHostOptions {
+        url: string;
+    }
+
+    export interface IHostConfiguration extends IHostOptions {
+        url: string;
+    }
+
+    export interface IApiOptions {
+        path: string;
+        values?: any
+    }
+
+    export interface IApiConfiguration extends IApiOptions {
+        path: string;
+        values: any;
+    }
+
+    export interface IRestServiceConfiguration {
+        host: IHostConfiguration;
+        api: IApiConfiguration;
+    }
+
+    export class HostConfiguration implements IHostConfiguration {
+        url: string = 'http://localhost/';
+    }
+
+    export class ApiConfiguration  implements IApiConfiguration {
+        path: string = 'api';
+        values: any = null;
+    }
+
+    export interface IResourceOptions {
+        name: string;
+        id?: string;
+    }
+
+    export interface IResourceConfiguration extends IResourceOptions {
+        name: string;
+        id: string
+    }
+
+    export class RestServiceConfiguration implements IRestServiceConfiguration {
+
+        constructor() {
+            this.host = new HostConfiguration();
+            this.api = new ApiConfiguration();
+        }
+
+        host: IHostConfiguration;
+        api: IApiConfiguration;
+    }
+
+    export class ResourceConfiguration implements IResourceConfiguration {
+
+        constructor(name: string, id?: string) {
+            this.name = name;
+            this.id = id;
+        }
+
+        name: string;
+        id: string = null;
     }
 
 }
