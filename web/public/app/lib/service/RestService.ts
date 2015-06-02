@@ -275,7 +275,7 @@ module HomeAutomation.Lib.Rest {
                             }
                         })
                         .filter((pair: IKeyValuePair<any>) => {
-                            return pair.value !== null && pair.value != '' && pair.value !== undefined;
+                            return pair.value !== null && pair.value !== undefined;
                         })
                         .map((pair: IKeyValuePair<any>) => {
                             return pair.key.toLowerCase() + '=' + encodeURIComponent(pair.value);

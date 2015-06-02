@@ -42,19 +42,27 @@ module HomeAutomation.Dashboard {
 
             this.$localScope.presentationRule = new PresentationRule();
 
-            this.$localScope.onSwitchClicked = (link: HomeAutomation.Lib.Model.ILink) => {
+            this.$localScope.onSwitchClicked = (link:HomeAutomation.Lib.Model.ILink) => {
                 console.log(link);
             };
 
-            var service: any =
-                this.$restService
-                    .host('http://localhost:3000/')
-                    .api('petervyvey/api/')
-                    .resource(Resource.Node.NAME)
-                    .all<Resource.INodeCollection>()
-                    .then((data: Resource.INodeCollection) => {
-                        this.$localScope.representation = data;
-                    });
+            this.$restService
+                .host('http://localhost:3000/')
+                .api('petervyvey/api/')
+                .resource(Resource.Node.NAME)
+                .all<Resource.INodeCollection>()
+                .then((data:Resource.INodeCollection) => {
+                    this.$localScope.representation = data;
+                });
+
+            this.$restService
+                .host('http://localhost:3000/')
+                .api('petervyvey/api/')
+                .resource(Resource.Node.NAME)
+                .one('50af70d9-9ad1-4c53-8391-83c006b3668b', {active: false, page: 1, pageSize: 20})
+                .then((data:Resource.INodeCollection) => {
+                    console.log(data);
+                });
         }
     }
 
