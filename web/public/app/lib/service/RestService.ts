@@ -177,9 +177,17 @@ module HomeAutomation.Lib.Rest {
 
     }
 
+    export interface IEndpointOptions {
+        url: string;
+    }
+
+    export interface IEndpointConfiguration extends IEndpointOptions {
+        url: string;
+    }
+
     export class RestServiceEndpoint implements IRestServiceApi {
 
-        constructor($http:ng.IHttpService, $q:ng.IQService, endpoint: string) {
+        constructor($http:ng.IHttpService, $q:ng.IQService, options: IEndpointOptions) {
             this.$http = $http;
             this.$q = $q;
 
