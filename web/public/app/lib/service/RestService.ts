@@ -78,6 +78,13 @@ module HomeAutomation.Lib.Rest {
             return this;
         }
 
+        public endpoint(options: string|IEndpointOptions): RestServiceEndpoint {
+            var _options: IEndpointOptions = typeof options === 'string' ? { url: options.toString() } : options;
+            var endpoint: RestServiceEndpoint = RestServiceEndpoint.Create(this.$http, this.$q, this.configuration);
+
+            return endpoint;
+        }
+
         public query(query: any): RestServiceEndpoint {
             this.queryString = this.buildQueryString(query);
 
@@ -93,8 +100,8 @@ module HomeAutomation.Lib.Rest {
             return this;
         }
 
-        public one<TRepresentation>(options: IResourceOptions): RestServiceEndpoint {
-            var _options: IResourceOptions = typeof options === 'string' ? { name: options.toString() } : options;
+        public one<TRepresentation>(name: string, id?: string): RestServiceEndpoint {
+            var _options: IResourceOptions = { name: name, id: id };
             var configuration: ResourceConfiguration = new ResourceConfiguration(_options.name, _options.id);
 
             this.resources.push(configuration);
@@ -198,6 +205,14 @@ module HomeAutomation.Lib.Rest {
         values: any;
     }
 
+    export interface IEndpointOptions {
+        url: string;
+    }
+
+    export interface IEndpointConfiguration extends IEndpointOptions {
+        url: string;
+    }
+
     export interface IRestServiceConfiguration {
         host: IHostConfiguration;
         api: IApiConfiguration;
@@ -210,6 +225,15 @@ module HomeAutomation.Lib.Rest {
     export class ApiConfiguration  implements IApiConfiguration {
         path: string = 'api';
         values: any = null;
+    }
+
+    export class EndpointConfiguration implements IEndpointConfiguration {
+
+        constructor(url: string) {
+            this.url = url;
+        }
+
+        public url: string;
     }
 
     export interface IResourceOptions {

@@ -49,7 +49,7 @@ module HomeAutomation.Dashboard {
             this.$restService
                 .host('http://localhost:3000/')
                 .api('petervyvey/api/')
-                .one({name: Resource.Node.NAME, id: '50af70d9-9ad1-4c53-8391-83c006b3668b'})
+                .one(Resource.Node.NAME, '50af70d9-9ad1-4c53-8391-83c006b3668b')
                 .query({active: false, page: 1, pageSize: 20})
                 .get()
                 .then((data:Resource.INodeCollection) => {
