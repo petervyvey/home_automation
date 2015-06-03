@@ -212,6 +212,31 @@ module HomeAutomation.Lib.Rest {
     // OPTIONS & CONFIGURATIONS
     // -------------------------------------------------------------------------------------------------------------
 
+    export class StringFormat {
+
+        public static Format(template:string, values):string {
+
+            var pairs:Array<IKeyValuePair<any>> =
+                Object.keys(values)
+                    .map((key:string):IKeyValuePair<any> => {
+                        return {
+                            key: key,
+                            value: values[key]
+                        }
+                    })
+                    .filter((pair:IKeyValuePair<any>):IKeyValuePair<any> => {
+                        return pair.value !== null && pair.value !== undefined;
+                    });
+
+            pairs.forEach((pair: IKeyValuePair<any>): void => {
+                var regEx = new RegExp("\\{:" + pair.key + "\\}", "gm");
+                template = template.replace(regEx, pair.value.toString());
+            });
+
+            return template;
+        }
+    }
+
     interface IKeyValuePair<TValue> {
         key: string;
         value: TValue;
