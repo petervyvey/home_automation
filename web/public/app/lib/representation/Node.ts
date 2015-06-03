@@ -4,6 +4,8 @@ module Resource {
 
     export class Node {
         public static NAME: string = 'nodes';
+
+        public id: string;
     }
 
     export interface INode extends HomeAutomation.Lib.Model.IRepresentation {
@@ -24,5 +26,11 @@ module Resource {
 
     export interface IEmbeddedNodeCollection {
         nodes: Array<INode>
+    }
+}
+
+module Resource.Portal.V1 {
+    export class Node {
+
     }
 }

@@ -66,9 +66,9 @@ export class SwitchRepresentation extends HalApi.ResourceRepresentation implemen
         var switchRepresentation:SwitchRepresentation =
             SwitchRepresentation.FromDomainObject(request, _switch)
                 .addLink('self', new HalApi.Link(request, '/' + tenantCode + '/switches/' + _switch.id))
-                .addLink('$mode.alwaysOff', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/off', HalApi.HttpVerb.POST))
-                .addLink('$mode.alwaysOn', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/on', HalApi.HttpVerb.POST))
-                .addLink('$mode.scheduled', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/scheduled', HalApi.HttpVerb.POST))
+                .addLink('$mode.alwaysOff', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/off', HalApi.HttpVerb.PUT))
+                .addLink('$mode.alwaysOn', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/on', HalApi.HttpVerb.PUT))
+                .addLink('$mode.scheduled', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/switches/' + _switch.id + '/mode/scheduled', HalApi.HttpVerb.PUT))
                 .cast<SwitchRepresentation>();
 
         return switchRepresentation;

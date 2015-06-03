@@ -29,24 +29,29 @@ module HomeAutomation.Lib.Rest {
         public $q: angular.IQService;
         public configuration: RestServiceConfiguration;
 
-        public host(options: string|IHostOptions): RestServiceEndpoint {
+        public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
-            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
+            var configuration: RestServiceConfiguration = angular.extend({} , this.configuration);
+            configuration.host.url = _options.url;
 
-            return endpoint;
+            var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
+
+            return connector;
         }
 
-        public api(options: string|IApiOptions): RestServiceEndpoint {
+        public api(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
-            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
+            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            configuration.api.path = _options.path;
+            configuration.api.values =_options.values;
 
-            return endpoint;
+            var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
+
+            return connector;
         }
     }
 
-    export class RestServiceEndpoint {
+    export class RestServiceConnector {
 
         constructor($http: angular.IHttpService, $q: angular.IQService, configuration: RestServiceConfiguration) {
             this.$http = $http;
@@ -58,32 +63,75 @@ module HomeAutomation.Lib.Rest {
         private $q: angular.IQService;
         private $http: angular.IHttpService;
 
-        private configuration: RestServiceConfiguration;
-        private resources: Array<ResourceConfiguration> = [];
-        private queryString: string = '';
+        public configuration: RestServiceConfiguration;
 
-        public host(options: string|IHostOptions): RestServiceEndpoint {
+        public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
-            var service: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
+            var configuration: RestServiceConfiguration = angular.extend({} , this.configuration);
+            configuration.host.url = _options.url;
 
             return this;
         }
 
-        public api(options: string|IApiOptions): RestServiceEndpoint {
+        public api(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend(this.configuration, _options);
-            var service: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, configuration);
+            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            configuration.api.path = _options.path;
+            configuration.api.values =_options.values;
 
             return this;
         }
 
-        public endpoint(options: string|IEndpointOptions): RestServiceEndpoint {
-            var _options: IEndpointOptions = typeof options === 'string' ? { url: options.toString() } : options;
-            var endpoint: RestServiceEndpoint = RestServiceEndpoint.Create(this.$http, this.$q, this.configuration);
+        public all<TRepresentation>(options: string|IResourceOptions): RestServiceEndpoint {
+            var endpointUrl: string = this.buildEndpointUrl();
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(endpointUrl));
+            endpoint.all(options);
 
             return endpoint;
         }
+
+        public one<TRepresentation>(name: string, id?: string): RestServiceEndpoint {
+            var endpointUrl: string = this.buildEndpointUrl();
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(endpointUrl));
+            endpoint.one(name, id);
+
+            return endpoint;
+        }
+
+        public buildEndpointUrl(): string {
+            if (this.configuration.host.url[this.configuration.host.url.length - 1] === '/') {
+                this.configuration.host.url = this.configuration.host.url.substr(0, this.configuration.host.url.length - 1);
+            }
+
+            if (this.configuration.api.path[0] === '/') {
+                this.configuration.api.path = this.configuration.api.path.substr(1);
+            }
+
+            if (this.configuration.api.path[this.configuration.api.path.length - 1] === '/') {
+                this.configuration.api.path = this.configuration.api.path.substr(0, this.configuration.api.path.length - 1);
+            }
+
+            var endpoint: string = this.configuration.host.url + DELIMITER + this.configuration.api.path;
+
+            return endpoint;
+        }
+    }
+
+    export class RestServiceEndpoint {
+
+        constructor($http: angular.IHttpService, $q: angular.IQService, configuration: EndpointConfiguration) {
+            this.$http = $http;
+            this.$q = $q;
+
+            this.configuration = configuration;
+        }
+
+        private $q: angular.IQService;
+        private $http: angular.IHttpService;
+
+        private configuration: EndpointConfiguration;
+        private resources: Array<ResourceConfiguration> = [];
+        private queryString: string = '';
 
         public query(query: any): RestServiceEndpoint {
             this.queryString = this.buildQueryString(query);
@@ -115,14 +163,14 @@ module HomeAutomation.Lib.Rest {
             var config: angular.IRequestShortcutConfig = { headers: {} };
             //config.headers = this.addCustomHttpHeaders();
 
-            var endpoint: string = this.buildEndpoint();
+            var url: string = this.configuration.url;
             this.resources.forEach((resource: ResourceConfiguration) => {
-                endpoint = endpoint + DELIMITER + resource.name + (resource.id ? '/' + resource.id : '');
+                url = url + DELIMITER + resource.name + (resource.id ? '/' + resource.id : '');
             });
 
-            endpoint = endpoint + this.queryString;
+            url = url + this.queryString;
 
-            this.$http.get(endpoint, config)
+            this.$http.get(url, config)
                 .success((data: TRepresentation) => {
                     deferred.resolve(data);
                 })
@@ -131,24 +179,6 @@ module HomeAutomation.Lib.Rest {
                 });
 
             return deferred.promise;
-        }
-
-        public buildEndpoint(): string {
-            if (this.configuration.host.url[this.configuration.host.url.length - 1] === '/') {
-                this.configuration.host.url = this.configuration.host.url.substr(0, this.configuration.host.url.length - 1);
-            }
-
-            if (this.configuration.api.path[0] === '/') {
-                this.configuration.api.path = this.configuration.api.path.substr(1);
-            }
-
-            if (this.configuration.api.path[this.configuration.api.path.length - 1] === '/') {
-                this.configuration.api.path = this.configuration.api.path.substr(0, this.configuration.api.path.length - 1);
-            }
-
-            var endpoint: string = this.configuration.host.url + DELIMITER + this.configuration.api.path;
-
-            return endpoint;
         }
 
         private buildQueryString(query: any): string {
