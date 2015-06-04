@@ -5,19 +5,19 @@ module HomeAutomation.Dashboard {
     interface IIndexScope extends ng.IRootScopeService {
         presentationRule: PresentationRule;
         representation: Resource.INodeCollection;
-        onSwitchClicked: (link: HomeAutomation.Lib.Model.ILink) => void;
+        onSwitchClicked: (link:HomeAutomation.Lib.Model.ILink) => void;
     }
 
     export class PresentationRule {
-        showSwitchAlwaysOnIcon(_switch: Resource.ISwitch): boolean {
+        showSwitchAlwaysOnIcon(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'alwayson' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'on');
         }
 
-        showSwitchAlwaysOffIcon(_switch: Resource.ISwitch): boolean {
+        showSwitchAlwaysOffIcon(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'alwaysoff' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'off');
         }
 
-        isScheduled(_switch: Resource.ISwitch): boolean {
+        isScheduled(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'scheduled';
         }
     }
@@ -26,19 +26,19 @@ module HomeAutomation.Dashboard {
 
         static $inject = ['$scope', '$restService'];
 
-        constructor($scope: any, $restService: HomeAutomation.Lib.Rest.RestService){
+        constructor($scope:any, $restService:HomeAutomation.Lib.Rest.RestService) {
             this.$localScope = this.$scope = $scope;
             this.$restService = $restService;
 
             this.initialize();
         }
 
-        private $scope: any;
-        private $localScope : IIndexScope;
+        private $scope:any;
+        private $localScope:IIndexScope;
 
-        private $restService: HomeAutomation.Lib.Rest.RestService;
+        private $restService:HomeAutomation.Lib.Rest.RestService;
 
-        private initialize(): void {
+        private initialize():void {
 
             this.$localScope.presentationRule = new PresentationRule();
 
@@ -46,10 +46,12 @@ module HomeAutomation.Dashboard {
                 console.log(link);
             };
 
+            var transform:string = HomeAutomation.Lib.Rest.StringFormat.Format('http://localhost:3000/{:organisation}/api/', {organisation: 'petervyvey'});
+
             this.$restService
                 .host('http://localhost:3000/')
-                .api('home/api/')
-                .one(Resource.Node.NAME, 'ac9e943d-4d75-4dbb-84df-ad4d4064aacd')
+                .api('petervyvey/api/')
+                .one(Resource.Node.NAME, '50af70d9-9ad1-4c53-8391-83c006b3668b')
                 .query({active: false, page: 1, pageSize: 20})
                 .get()
                 .then((data:Resource.INodeCollection) => {
@@ -58,7 +60,7 @@ module HomeAutomation.Dashboard {
 
             this.$restService
                 .host('http://localhost:3000/')
-                .api('home/api/')
+                .api('petervyvey/api/')
                 .all(Resource.Node.NAME)
                 .query({active: false, page: 1, pageSize: 20})
                 .get()
