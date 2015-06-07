@@ -7,12 +7,12 @@
             <div style="display: table; width: 100%;">
                 <div style="display: table-row;" data-ng-repeat="switch in node._embedded.switches">
                     <div style="display: table-cell;">
-                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links['$mode.alwaysOff'])" data-ng-show="presentationRule.showSwitchAlwaysOnIcon(switch)">
+                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links.$setAlwaysOff)" data-ng-show="presentationRule.showSwitchAlwaysOnIcon(switch)">
                             <i class="fa fa-circle fa-stack-2x" style="color: limegreen;"></i>
                             <i class="fa fa-lightbulb-o fa-stack-1x fa-inverse" style="color: #414141; font-size: 1.2em"></i>
                         </span>
 
-                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links['$mode.alwaysOn'])" data-ng-show="presentationRule.showSwitchAlwaysOffIcon(switch)">
+                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links.$setAlwaysOn)" data-ng-show="presentationRule.showSwitchAlwaysOffIcon(switch)">
                             <i class="fa fa-circle fa-stack-2x" style="color: orange;"></i>
                             <i class="fa fa-lightbulb-o fa-stack-1x fa-inverse" style="color: #414141;"></i>
                             <i class="fa fa-ban fa-stack-1x" style="color: orangered; font-size: 1.5em"></i>
@@ -22,12 +22,12 @@
                         <span data-ng-bind="switch.description"></span>
                     </div>
                     <div style="display: table-cell;">
-                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links['$mode.scheduled'])" data-ng-show="presentationRule.isScheduled(switch)">
+                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links.$setScheduled)" data-ng-show="presentationRule.isScheduled(switch)">
                             <i class="fa fa-circle fa-stack-2x" style="color: skyblue;"></i>
                             <i class="fa fa-clock-o fa-stack-1x fa-inverse" style="color: #414141; font-size: 1.2em"></i>
                         </span>
 
-                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links['$mode.scheduled'])" data-ng-show="!presentationRule.isScheduled(switch)">
+                        <span class="fa-stack fa-lg" data-ng-click="onSwitchClicked(switch._links.$setScheduled)" data-ng-show="!presentationRule.isScheduled(switch)">
                             <i class="fa fa-circle fa-stack-2x" style="color: lightgrey;"></i>
                             <i class="fa fa-clock-o fa-stack-1x fa-inverse" style="color: #414141; font-size: 1.2em"></i>
                         </span>

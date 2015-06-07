@@ -44,23 +44,15 @@ module HomeAutomation.Dashboard {
 
             this.$localScope.onSwitchClicked = (link:HomeAutomation.Lib.Model.ILink) => {
                 console.log(link);
+                this.$restService
+                    .endpoint(link.href)
+                    .put()
+                    .then((data:any) => {
+                        console.log('data', data);
+                    });
             };
 
-            var transform:string = HomeAutomation.Lib.Rest.RestServiceUtils.Format('http://localhost:3000/{:organisation}/api/', {organisation: 'petervyvey'});
-
             this.$restService
-                //.host('http://localhost:3000/')
-                //.api('petervyvey/api/')
-                .one(Resource.Node.NAME, '50af70d9-9ad1-4c53-8391-83c006b3668b')
-                .query({active: false, page: 1, pageSize: 20})
-                .get()
-                .then((data:Resource.INodeCollection) => {
-                    console.log(data);
-                });
-
-            this.$restService
-                //.host('http://localhost:3000/')
-                //.api('petervyvey/api/')
                 .all(Resource.Node.NAME)
                 .query({active: false, page: 1, pageSize: 20})
                 .get()

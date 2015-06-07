@@ -33,10 +33,14 @@ export class Tenant extends DomainApi.DomainObject {
 export class TenantFactory {
 
     public static create(data: ITenantOptions): Tenant {
-        var tenant = new Tenant();
-        tenant.id = data.id;
-        tenant.code = data.code;
-        tenant.description = data.description;
+        var tenant: Tenant = null;
+
+        if (data) {
+            tenant = new Tenant();
+            tenant.id = data.id;
+            tenant.code = data.code;
+            tenant.description = data.description;
+        }
 
         return tenant;
     }

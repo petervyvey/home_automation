@@ -38,7 +38,7 @@ router.get('/:switchID', (request: express.Request, response: express.Response, 
             return service.getSwitchByID(tenant.id, request.params.switchID)
         })
         .then((_switch: SwitchApi.Switch): void => {
-            var representation: SwitchApi.SwitchRepresentation = BuildRepresentation(request, (<any>request).tenantCode, _switch);
+            var representation: SwitchApi.SwitchRepresentation = SwitchApi.SwitchRepresentation.CreateRepresentation(request, (<any>request).tenantCode, _switch); //BuildRepresentation(request, (<any>request).tenantCode, _switch);
 
             response.set('Content-Type', 'application/hal+json');
             response.json(representation);
@@ -48,7 +48,7 @@ router.get('/:switchID', (request: express.Request, response: express.Response, 
         });
 });
 
-router.post('/:switchID/mode/:mode', (req, res, next) => {
+router.put('/:switchID/mode/:mode', (req, res, next) => {
     var service : ApplicationServiceModule.ApplicationService = new ApplicationServiceModule.ApplicationService();
     service.getTenantByCode((<any>req).tenantCode)
         .then((tenant: TenantApi.Tenant): Q.Promise<boolean> => {

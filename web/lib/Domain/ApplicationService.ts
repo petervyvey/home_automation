@@ -143,7 +143,7 @@ export class ApplicationService extends DomainApi.DomainService {
         var deferred: Q.Deferred<boolean> = Q.defer<boolean>();
 
         var key: string = 'automation.event';
-        var event: string = JSON.stringify({ id: GeneratorApi.Generator.NewGuid(), type:'SwitchModeEvent', tenant: tenantID, switches:[ { id: switchID, mode:  mode}]});
+        var event: string = JSON.stringify({ id: GeneratorApi.Generator.NewGuid(), type:'SwitchModeEvent', tenantID: tenantID, switches:[ { id: switchID, mode:  mode}]});
 
         amqp.connect('amqp://automation:automation@localhost/automation')
             .then(function(connection) {

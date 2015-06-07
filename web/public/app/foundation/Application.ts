@@ -14,8 +14,7 @@ angular.module('application')
         '$restServiceProvider', ($restServiceFactoryProvider: HomeAutomation.Lib.Rest.RestServiceProvider) => {
             var configuration: HomeAutomation.Lib.Rest.RestServiceConfiguration = new HomeAutomation.Lib.Rest.RestServiceConfiguration();
             configuration.host.url = 'http://localhost:3000';
-            configuration.api.path = 'petervyvey/api';
-            configuration.api.values = null;
+            configuration.api.path = '{:tenant}/api';
 
             $restServiceFactoryProvider.setServiceConfig(configuration);
         }
@@ -35,6 +34,8 @@ angular.module('application')
                 });
         }
     ])
-    .run(($rootScope: ng.IRootScopeService) => {
-
-    });
+    .run(['$rootScope', '$restService',($rootScope: ng.IRootScopeService, $restService: HomeAutomation.Lib.Rest.RestService) => {
+        $restService.configuration.interceptors.api = (configuration: HomeAutomation.Lib.Rest.IApiConfiguration)=>{
+            configuration.values = {tenant: 'petervyvey'};
+        };
+    }]);

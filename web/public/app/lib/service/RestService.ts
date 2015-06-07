@@ -31,7 +31,7 @@ module HomeAutomation.Lib.Rest {
 
         public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
             configuration.host.url = _options.url;
 
             var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
@@ -41,25 +41,39 @@ module HomeAutomation.Lib.Rest {
 
         public api(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
-            configuration.api.path = _options.path;
-            configuration.api.values = _options.values;
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
+            configuration.api.path = _options.path ? _options.path : configuration.api.path;
+            configuration.api.values = _options.values ? _options.values : configuration.api.values;
 
             var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return connector;
         }
 
+        public endpoint(url: string): RestServiceEndpoint {
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(url));
+
+            return endpoint;
+        }
+
+        public operation<TRepresentation>(options: string|IOperationOptions): RestServiceEndpoint {
+            var _options: IOperationOptions = typeof options === 'string' ? { name: options } : options;
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
+            var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
+
+            return connector.all(_options);
+        }
+
         public all<TRepresentation>(options: string|IResourceOptions): RestServiceEndpoint {
             var _options: IResourceOptions = typeof options === 'string' ? { name: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
             var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return connector.all(_options);
         }
 
         public one<TRepresentation>(name: string, id?: string): RestServiceEndpoint {
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
             var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
 
             return connector.one(name, id);
@@ -82,23 +96,31 @@ module HomeAutomation.Lib.Rest {
 
         public host(options: string|IHostOptions): RestServiceConnector {
             var _options: IHostOptions = typeof options === 'string' ? { url: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
-            configuration.host.url = _options.url;
+            this.configuration.host.url = _options.url;
 
             return this;
         }
 
         public api(options: string|IApiOptions): RestServiceConnector {
             var _options: IApiOptions = typeof options === 'string' ? { path: options } : options;
-            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
-            configuration.api.path = _options.path;
-            configuration.api.values = _options.values;
+            this.configuration.api.path = _options.path;
+            this.configuration.api.values = _options.values;
 
             return this;
         }
 
+        public operation<TRepresentation>(options: string|IOperationOptions): RestServiceEndpoint {
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
+            var endpointUrl: string = configuration.buildEndpointUrl();
+            var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(endpointUrl));
+            endpoint.all(options);
+
+            return endpoint;
+        }
+
         public all<TRepresentation>(options: string|IResourceOptions): RestServiceEndpoint {
-            var endpointUrl: string = RestServiceUtils.BuildEndpointUrl(this.configuration);
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
+            var endpointUrl: string = configuration.buildEndpointUrl();
             var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(endpointUrl));
             endpoint.all(options);
 
@@ -106,7 +128,8 @@ module HomeAutomation.Lib.Rest {
         }
 
         public one<TRepresentation>(name: string, id?: string): RestServiceEndpoint {
-            var endpointUrl: string = RestServiceUtils.BuildEndpointUrl(this.configuration);
+            var configuration: RestServiceConfiguration = RestServiceConfiguration.Clone(this.configuration);
+            var endpointUrl: string = configuration.buildEndpointUrl();
             var endpoint: RestServiceEndpoint = new RestServiceEndpoint(this.$http, this.$q, new EndpointConfiguration(endpointUrl));
             endpoint.one(name, id);
 
@@ -132,6 +155,15 @@ module HomeAutomation.Lib.Rest {
 
         public query(query: any): RestServiceEndpoint {
             this.queryString = RestServiceUtils.BuildQueryString(query);
+
+            return this;
+        }
+
+        public operation<TRepresentation>(options: string|IOperationOptions): RestServiceEndpoint {
+            var _options: IResourceOptions = typeof options === 'string' ? { name: options.toString() } : options;
+            var configuration: ResourceConfiguration = new ResourceConfiguration(_options.name);
+
+            this.resources.push(configuration);
 
             return this;
         }
@@ -307,42 +339,26 @@ module HomeAutomation.Lib.Rest {
 
         public static Format(template:string, values):string {
 
-            var pairs:Array<IKeyValuePair<any>> =
-                Object.keys(values)
-                    .map((key:string):IKeyValuePair<any> => {
-                        return {
-                            key: key,
-                            value: values[key]
-                        }
-                    })
-                    .filter((pair:IKeyValuePair<any>): boolean => {
-                        return pair.value !== null && pair.value !== undefined;
-                    });
+            if (values) {
+                var pairs:Array<IKeyValuePair<any>> =
+                    Object.keys(values)
+                        .map((key:string):IKeyValuePair<any> => {
+                            return {
+                                key: key,
+                                value: values[key]
+                            }
+                        })
+                        .filter((pair:IKeyValuePair<any>):boolean => {
+                            return pair.value !== null && pair.value !== undefined;
+                        });
 
-            pairs.forEach((pair: IKeyValuePair<any>): void => {
-                var regEx = new RegExp("\\{:" + pair.key + "\\}", "gm");
-                template = template.replace(regEx, pair.value.toString());
-            });
+                pairs.forEach((pair:IKeyValuePair<any>):void => {
+                    var regEx = new RegExp("\\{:" + pair.key + "\\}", "gm");
+                    template = template.replace(regEx, pair.value.toString());
+                });
+            }
 
             return template;
-        }
-
-        public static BuildEndpointUrl(configuration: RestServiceConfiguration): string {
-            if (configuration.host.url[configuration.host.url.length - 1] === '/') {
-                configuration.host.url = configuration.host.url.substr(0, configuration.host.url.length - 1);
-            }
-
-            if (configuration.api.path[0] === '/') {
-                configuration.api.path = configuration.api.path.substr(1);
-            }
-
-            if (configuration.api.path[configuration.api.path.length - 1] === '/') {
-                configuration.api.path = configuration.api.path.substr(0, configuration.api.path.length - 1);
-            }
-
-            var endpoint: string = configuration.host.url + DELIMITER + configuration.api.path;
-
-            return endpoint;
         }
 
         public static BuildQueryString(query: any): string {
@@ -386,12 +402,12 @@ module HomeAutomation.Lib.Rest {
     }
 
     export interface IApiOptions {
-        path: string;
+        path?: string;
         values?: any
     }
 
     export interface IApiConfiguration extends IApiOptions {
-        path: string;
+        path?: string;
         values: any;
     }
 
@@ -436,15 +452,60 @@ module HomeAutomation.Lib.Rest {
         id: string
     }
 
+    export interface IOperationOptions extends IResourceOptions {
+    }
+
+    export interface IOperationConfiguration extends IResourceConfiguration {
+    }
+
+    export interface IInterceptors {
+        api: (configuration: IApiConfiguration)=>void;
+    }
+
+    export class Interceptors implements IInterceptors {
+        api: (configuration: IApiConfiguration)=>void = null;
+    }
+
     export class RestServiceConfiguration implements IRestServiceConfiguration {
 
         constructor() {
             this.host = new HostConfiguration();
             this.api = new ApiConfiguration();
+            this.interceptors = new Interceptors();
         }
 
         host: IHostConfiguration;
         api: IApiConfiguration;
+        interceptors: IInterceptors;
+
+        public static Clone(instance: RestServiceConfiguration): RestServiceConfiguration {
+            var clone: RestServiceConfiguration = new RestServiceConfiguration();
+            clone.host = angular.extend(new HostConfiguration(), instance.host);
+            clone.api = angular.extend(new ApiConfiguration(), instance.api);
+            clone.interceptors = instance.interceptors;
+
+            return clone;
+        }
+
+        public buildEndpointUrl(): string {
+            if (this.host.url[this.host.url.length - 1] === '/') {
+                this.host.url = this.host.url.substr(0, this.host.url.length - 1);
+            }
+
+            if (this.api.path[0] === '/') {
+                this.api.path = this.api.path.substr(1);
+            }
+
+            if (this.api.path[this.api.path.length - 1] === '/') {
+                this.api.path = this.api.path.substr(0, this.api.path.length - 1);
+            }
+
+            this.interceptors.api(this.api);
+
+            var endpoint: string = this.host.url + DELIMITER + RestServiceUtils.Format(this.api.path, this.api.values);
+
+            return endpoint;
+        }
     }
 
     export class ResourceConfiguration implements IResourceConfiguration {
