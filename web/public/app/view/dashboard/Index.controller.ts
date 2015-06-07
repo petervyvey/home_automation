@@ -2,13 +2,27 @@
 
 module HomeAutomation.Dashboard {
 
-    interface IIndexScope extends ng.IRootScopeService {
+    interface IIndexScope extends ng.IRootScopeService, IRuleCollection {
+        rules: IRuleCollection;
         presentationRule: PresentationRule;
         representation: Resource.INodeCollection;
         onSwitchClicked: (link:HomeAutomation.Lib.Model.ILink) => void;
     }
 
+    export interface IRuleCollection {
+        [index: string]: (subject: any) => boolean;
+    }
+
+    export class Rules {
+        constructor() {
+            this.rules = {};
+        }
+
+        public rules: IRuleCollection;
+    }
+
     export class PresentationRule {
+
         showSwitchAlwaysOnIcon(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'alwayson' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'on');
         }
@@ -39,8 +53,10 @@ module HomeAutomation.Dashboard {
         private $restService:HomeAutomation.Lib.Rest.RestService;
 
         private initialize():void {
-
-            this.$localScope.presentationRule = new PresentationRule();
+            this.$localScope.rules = {};
+            this.$localScope.rules['switchIsOn'] = (_switch: Resource.ISwitch): boolean => {
+                return _switch.state === 'on';
+            };
 
             this.$localScope.onSwitchClicked = (link:HomeAutomation.Lib.Model.ILink) => {
                 console.log(link);
