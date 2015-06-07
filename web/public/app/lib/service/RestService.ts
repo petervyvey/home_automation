@@ -49,6 +49,21 @@ module HomeAutomation.Lib.Rest {
 
             return connector;
         }
+
+        public all<TRepresentation>(options: string|IResourceOptions): RestServiceEndpoint {
+            var _options: IResourceOptions = typeof options === 'string' ? { name: options } : options;
+            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
+
+            return connector.all(_options);
+        }
+
+        public one<TRepresentation>(name: string, id?: string): RestServiceEndpoint {
+            var configuration: RestServiceConfiguration = angular.extend({}, this.configuration);
+            var connector: RestServiceConnector = new RestServiceConnector(this.$http, this.$q, configuration);
+
+            return connector.one(name, id);
+        }
     }
 
     export class RestServiceConnector {
@@ -288,7 +303,29 @@ module HomeAutomation.Lib.Rest {
     // HELPER, OPTIONS & CONFIGURATIONS
     // -------------------------------------------------------------------------------------------------------------
 
-    class RestServiceUtils {
+    export class RestServiceUtils {
+
+        public static Format(template:string, values):string {
+
+            var pairs:Array<IKeyValuePair<any>> =
+                Object.keys(values)
+                    .map((key:string):IKeyValuePair<any> => {
+                        return {
+                            key: key,
+                            value: values[key]
+                        }
+                    })
+                    .filter((pair:IKeyValuePair<any>): boolean => {
+                        return pair.value !== null && pair.value !== undefined;
+                    });
+
+            pairs.forEach((pair: IKeyValuePair<any>): void => {
+                var regEx = new RegExp("\\{:" + pair.key + "\\}", "gm");
+                template = template.replace(regEx, pair.value.toString());
+            });
+
+            return template;
+        }
 
         public static BuildEndpointUrl(configuration: RestServiceConfiguration): string {
             if (configuration.host.url[configuration.host.url.length - 1] === '/') {
@@ -320,7 +357,7 @@ module HomeAutomation.Lib.Rest {
                                 value: query[key]
                             }
                         })
-                        .filter((pair: IKeyValuePair<any>) => {
+                        .filter((pair: IKeyValuePair<any>): boolean => {
                             return pair.value !== null && pair.value !== undefined;
                         })
                         .map((pair: IKeyValuePair<any>) => {
