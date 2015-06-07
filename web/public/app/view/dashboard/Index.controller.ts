@@ -2,38 +2,56 @@
 
 module HomeAutomation.Dashboard {
 
-    interface IIndexScope extends ng.IRootScopeService, IRuleCollection {
-        rules: IRuleCollection;
-        presentationRule: PresentationRule;
-        representation: Resource.INodeCollection;
-        onSwitchClicked: (link:HomeAutomation.Lib.Model.ILink) => void;
-    }
-
     export interface IRuleCollection {
         [index: string]: (subject: any) => boolean;
     }
 
-    export class Rules {
-        constructor() {
-            this.rules = {};
-        }
-
-        public rules: IRuleCollection;
+    export interface DefaultConstructor<T> {
+        new (): T;
     }
 
-    export class PresentationRule {
+    export interface IEvaluationValue<TPresentationRules> {
+        value: boolean;
+        instance: RuleSet<TPresentationRules>
+    }
 
-        showSwitchAlwaysOnIcon(_switch:Resource.ISwitch):boolean {
+    export class RuleSet<TPresentationRules> {
+        constructor(ctor: DefaultConstructor<TPresentationRules>) {
+            this.container = new ctor();
+        }
+
+        public container: TPresentationRules;
+
+        public evaluate(): IEvaluationValue<TPresentationRules> {
+            return { value: true, instance: this };
+        }
+    }
+
+    export class IndexRuleSet extends RuleSet<PresentationRules> {
+        constructor() {
+            super(PresentationRules);
+        }
+    }
+
+    export class PresentationRules {
+
+        public showSwitchAlwaysOnIcon(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'alwayson' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'on');
         }
 
-        showSwitchAlwaysOffIcon(_switch:Resource.ISwitch):boolean {
+        public showSwitchAlwaysOffIcon(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'alwaysoff' || (_switch.mode.toLocaleLowerCase() === 'scheduled' && _switch.state.toLocaleLowerCase() === 'off');
         }
 
-        isScheduled(_switch:Resource.ISwitch):boolean {
+        public isScheduled(_switch:Resource.ISwitch):boolean {
             return _switch.mode.toLocaleLowerCase() === 'scheduled';
         }
+    }
+
+    interface IIndexScope extends ng.IRootScopeService, IRuleCollection {
+        rules: IndexRuleSet;
+        representation: Resource.INodeCollection;
+        onSwitchClicked: (link:HomeAutomation.Lib.Model.ILink) => void;
     }
 
     export class IndexController {
@@ -53,10 +71,7 @@ module HomeAutomation.Dashboard {
         private $restService:HomeAutomation.Lib.Rest.RestService;
 
         private initialize():void {
-            this.$localScope.rules = {};
-            this.$localScope.rules['switchIsOn'] = (_switch: Resource.ISwitch): boolean => {
-                return _switch.state === 'on';
-            };
+            this.$localScope.rules = new IndexRuleSet();
 
             this.$localScope.onSwitchClicked = (link:HomeAutomation.Lib.Model.ILink) => {
                 console.log(link);

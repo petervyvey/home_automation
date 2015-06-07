@@ -4,11 +4,6 @@ module HomeAutomation.Lib.Rest {
 
     var DELIMITER: string = '/';
 
-    export class Test {
-        private test: string;
-
-    }
-
     export class RestServiceProvider implements angular.IServiceProvider {
         $get = ['$http', '$q', ($http: angular.IHttpService, $q: angular.IQService) => {
             return new RestService($http, $q, this.configuration);
