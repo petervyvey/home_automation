@@ -56,11 +56,14 @@ module HomeAutomation.Dashboard {
 
     export class IndexController {
 
-        static $inject = ['$scope', '$restService'];
+        static $inject = ['$scope', '$q', '$restService', '$pollingService'];
 
-        constructor($scope:any, $restService:HomeAutomation.Lib.Rest.RestService) {
+        constructor($scope:any, $q: ng.IQService, $restService:HomeAutomation.Lib.Rest.RestService, $pollingService: HomeAutomation.Lib.Foundation.PollingService) {
             this.$localScope = this.$scope = $scope;
+
+            this.$q = $q;
             this.$restService = $restService;
+            this.$pollingService = $pollingService;
 
             this.initialize();
         }
@@ -68,18 +71,41 @@ module HomeAutomation.Dashboard {
         private $scope:any;
         private $localScope:IIndexScope;
 
-        private $restService:HomeAutomation.Lib.Rest.RestService;
+        private $q: ng.IQService;
+        private $restService: HomeAutomation.Lib.Rest.RestService;
+        private $pollingService: HomeAutomation.Lib.Foundation.PollingService;
 
         private initialize():void {
+            console.log(this.$pollingService);
+
+            this.$pollingService.start((): ng.IPromise<any> => {
+                var deferred: ng.IDeferred<any> = this.$q.defer<any>();
+
+                this.$restService
+                    .all(Resource.Node.NAME)
+                    .query({active: false, page: 1, pageSize: 20})
+                    .get()
+                    .then((data:Resource.INodeCollection) => {
+                        this.$localScope.representation = data;
+                        deferred.resolve();
+                        deferred = null;
+                    });
+
+                return deferred.promise;
+            });
+
+            this.$localScope.$on('$destroy',(event: ng.IAngularEvent) => {
+                this.$pollingService.stop();
+            });
+
             this.$localScope.rules = new IndexRuleSet();
 
             this.$localScope.onSwitchClicked = (link:HomeAutomation.Lib.Model.ILink) => {
-                console.log(link);
                 this.$restService
                     .endpoint(link.href)
                     .put()
-                    .then((data:any) => {
-                        console.log('data', data);
+                    .finally((): any => {
+                        this.$pollingService.poll();
                     });
             };
 
