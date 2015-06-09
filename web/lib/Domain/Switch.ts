@@ -69,6 +69,7 @@ export class SwitchRepresentation extends HalApi.ResourceRepresentation implemen
                 .addLink('$setAlwaysOff', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/api/switches/' + _switch.id + '/mode/off', HalApi.HttpVerb.PUT))
                 .addLink('$setAlwaysOn', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/api/switches/' + _switch.id + '/mode/on', HalApi.HttpVerb.PUT))
                 .addLink('$setScheduled', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/api/switches/' + _switch.id + '/mode/scheduled', HalApi.HttpVerb.PUT))
+                .addLink('$setUnscheduled', HalApi.Link.CreateWithMethod(request, '/' + tenantCode + '/api/switches/' + _switch.id + '/mode/unscheduled', HalApi.HttpVerb.PUT))
                 .cast<SwitchRepresentation>();
 
         return switchRepresentation;

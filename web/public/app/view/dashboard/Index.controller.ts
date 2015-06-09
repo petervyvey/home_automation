@@ -105,7 +105,7 @@ module HomeAutomation.Dashboard {
                     .endpoint(link.href)
                     .put()
                     .finally((): any => {
-                        this.$pollingService.poll();
+                        this.$pollingService.once();
                     });
             };
 
