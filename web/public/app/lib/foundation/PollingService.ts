@@ -45,7 +45,7 @@ module HomeAutomation.Lib.Foundation {
             }
         }
 
-        public tick(self:PollingService) {
+        private tick(self:PollingService) {
             if (self.timer) {
                 self.$timeout.cancel(this.timer);
             }
