@@ -32,7 +32,11 @@ module HomeAutomation.Lib.Foundation {
             }
 
             this.onTick = onTick;
-            this.setTimer(this);
+            this.setTimer();
+        }
+
+        public once(): void {
+            this.tick();
         }
 
         public poll():void {
@@ -45,21 +49,21 @@ module HomeAutomation.Lib.Foundation {
             }
         }
 
-        private tick(self:PollingService) {
-            if (self.timer) {
-                self.$timeout.cancel(this.timer);
+        private tick() {
+            if (this.timer) {
+                this.$timeout.cancel(this.timer);
             }
 
             this.onTick().then(() => {
-                self.setTimer(self);
+                this.setTimer();
             });
         }
 
-        private setTimer(self:PollingService):void {
-            var delay:number = self.generateDelayValue();
+        private setTimer():void {
+            var delay:number = this.generateDelayValue();
 
-            self.timer = self.$timeout(() => {
-                self.tick(self);
+            this.timer = this.$timeout(() => {
+                this.tick();
             }, delay);
         }
 
